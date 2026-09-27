@@ -216,7 +216,7 @@ test("redact → send → rehydrate: only placeholders cross the wire", async ({
   expect(consoleProblems, consoleProblems.join("\n")).toEqual([]);
 
   // Write to the gitignored artifacts dir so test runs never churn the tree.
-  // The committed README hero (docs/demo.png) is a stable, decoupled snapshot.
+  // The committed README hero (docs/assets/demo.png) is a stable, decoupled snapshot.
   await page.screenshot({
     path: "test-results/redact-send-rehydrate.png",
     fullPage: true,

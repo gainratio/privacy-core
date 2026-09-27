@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The README is rewritten in plain English.** It now says who the library is
+  for, what it does, one real example run against the published 0.3.0 package
+  (including the name it does not catch), honest limits and alternatives. The
+  deep material moved, not deleted: the format table to `docs/DETECTION.md`, the
+  API, receipts and settings to `docs/API.md`, and the security model, proof
+  table and roadmap to `docs/ARCHITECTURE.md`. New `docs/GETTING_STARTED.md`
+  takes a developer from clone to a first change. The package description
+  matches the README's first line, and `test/readme.contract.test.ts` pins the
+  new sections, facts and a banned-jargon list.
+
 - **The release candidate is back to the fleet's shell-free shape: checkout,
   Dagger, upload.** The central `hseshadr/ci` fleet policy forbids `run:` steps
   and reported `shell-step` and `candidate-order` on `release-candidate.yml`.

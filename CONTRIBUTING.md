@@ -20,7 +20,7 @@ pnpm gate
 
 That one command is the whole bar: Biome lint/format → `tsc` typecheck (library +
 demo) → Vitest with coverage thresholds → Playwright e2e → build. The CI workflow
-(`.github/workflows/ci.yml`) runs the same command — if it passes locally, it
+(`.github/workflows/dagger.yml`, via Dagger) runs the same command — if it passes locally, it
 passes remotely.
 
 ## Test layout

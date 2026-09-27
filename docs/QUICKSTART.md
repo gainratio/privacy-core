@@ -14,7 +14,7 @@ pnpm install && pnpm demo
 Open <http://localhost:5173>. A synthetic bank statement is pre-loaded. You see
 the raw text, the exact text that will be sent (every **recognized** value
 replaced by a label like `[CARD_1]` — the
-[coverage table](../README.md#what-it-recognizes-exactly) is the precise list of
+[coverage table](DETECTION.md) is the precise list of
 what that includes), and — after you click **Approve & send** — the answer with
 your real values put back locally. With no key set, a built-in offline stand-in
 model (`NoLLMProvider`) is used, so the whole loop runs with nothing on the

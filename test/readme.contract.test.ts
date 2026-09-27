@@ -4,9 +4,11 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 /**
- * The portfolio README contract: it stops the README's first screen (title
- * down to "Try it in 60 seconds") drifting from the template. String and regex
- * checks only; it does not judge prose.
+ * The README contract. It pins the plain-English shape (title, one-line
+ * description, install line, sections in order), the facts the README
+ * promises (the real example output, the name that is NOT caught, the
+ * published version it documents), links to the developer docs, and a
+ * banned-jargon list. String and regex checks only; it does not judge prose.
  */
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const readme = readFileSync(join(root, "README.md"), "utf8");
@@ -21,60 +23,128 @@ const at = (heading: string): number => {
   return index;
 };
 
+const section = (heading: string): string => {
+  const start = at(heading) + heading.length + 2;
+  const next = readme.indexOf("\n## ", start);
+  return readme.slice(start, next === -1 ? undefined : next);
+};
+
+/** README prose with fenced code blocks and inline code removed. */
+const prose = readme
+  .replace(/```[\s\S]*?```/g, "")
+  .replace(/`[^`\n]*`/g, "")
+  .replace(/\]\([^)]*\)/g, "]");
+
+const SECTION_ORDER = [
+  "## Try it",
+  "## How it works",
+  "## What it does not do",
+  "## When to use something else",
+  "## Install",
+  "## Develop",
+  "## More detail",
+  "## License",
+];
+
+const BANNED = [
+  /\bnorthstar\b/i,
+  /\bseam\b/i,
+  /\blego\b/i,
+  /trust envelope/i,
+  /fail[- ]closed/i,
+  /\bgate\b/i,
+  /\bfleet\b/i,
+  /\bportfolio\b/i,
+  /production[- ]ready/i,
+  /\brobust\b/i,
+  /\bblazing\b/i,
+  /enterprise[- ]grade/i,
+  /\bseamless/i,
+  /\begress\b/i,
+  /\brehydrat/i,
+  /At a glance/,
+  /Try it in 60 seconds/,
+];
+
 describe("README contract", () => {
   const lines = readme.split("\n");
 
-  it("opens with the title, then a plain tagline equal to the package description", () => {
-    expect(lines[0]).toMatch(/^# \S/);
+  it("opens with the package name, then one plain sentence equal to the package description", () => {
+    expect(lines[0]).toBe("# @edgeproc/privacy-core");
     const tagline = lines
       .slice(1)
       .find((line) => line.trim() !== "" && !line.startsWith("[!["));
     expect(tagline).toBe(pkg.description);
     expect(pkg.description.length).toBeLessThanOrEqual(120);
+    expect(pkg.description).toMatch(/card numbers/);
+    expect(pkg.description).toMatch(/AI/);
   });
 
-  it("shows at most four badges before At a glance", () => {
-    const firstScreen = readme.slice(0, at("## At a glance"));
-    expect(firstScreen.split("[![").length - 1).toBeLessThanOrEqual(4);
+  it("puts the one-line install, in bold, right under the description", () => {
+    const after = readme.slice(readme.indexOf(pkg.description));
+    const next = after
+      .split("\n")
+      .slice(1)
+      .find((line) => line.trim() !== "");
+    expect(next).toContain("**`npm install @edgeproc/privacy-core`**");
   });
 
-  it("carries every At a glance label, bolded exactly, on the first screen", () => {
-    const firstScreen = readme.slice(0, at("## How it works"));
-    for (const label of [
-      "**What it does**",
-      "**Who it's for**",
-      "**What stays on your device / what leaves it**",
-      "**Runs on**",
-      "**Not for**",
-      "**Status**",
-    ]) {
-      expect(firstScreen, label).toContain(label);
+  it("keeps at most three badges (CI, version, license)", () => {
+    expect(readme.split("[![").length - 1).toBeLessThanOrEqual(3);
+  });
+
+  it("links the technical docs, including Getting started, before Try it", () => {
+    const line = lines.find((l) => l.startsWith("**Technical docs:**"));
+    expect(line).toBeDefined();
+    expect(line).toContain("(docs/ARCHITECTURE.md)");
+    expect(line).toContain("(docs/GETTING_STARTED.md)");
+    expect(readme.indexOf("**Technical docs:**")).toBeLessThan(at("## Try it"));
+  });
+
+  it("has the standard sections, in order", () => {
+    const positions = SECTION_ORDER.map(at);
+    expect(positions).toEqual([...positions].sort((a, b) => a - b));
+  });
+
+  it("shows the real output of the example, including the name it misses", () => {
+    const tryIt = section("## Try it");
+    expect(tryIt).toContain(
+      "will send:  Maria Lopez asked: refund [AMOUNT_1] to card [CARD_1] and email [EMAIL_1].",
+    );
+    expect(tryIt).toContain(
+      "you see:    I reviewed your statement. It referenced 3 redacted value(s): $482.10, 4242 4242 4242 4242, maria@example.com.",
+    );
+    expect(tryIt).toMatch(/name is not caught/i);
+    expect(tryIt).toContain("(docs/assets/demo.png)");
+    expect(existsSync(join(root, "docs/assets/demo.png"))).toBe(true);
+  });
+
+  it("says which published version the example was run against", () => {
+    expect(section("## Try it")).toContain(`version ${pkg.version}`);
+  });
+
+  it("states the honest limits", () => {
+    const limits = section("## What it does not do");
+    for (const fact of [/names/i, /anonymous/i, /memory/i, /512 KiB/]) {
+      expect(limits).toMatch(fact);
     }
   });
 
-  it("puts the hero caption before the example, and the example before How it works", () => {
-    const tryIt = at("## Try it in 60 seconds");
-    expect(tryIt).toBeLessThan(at("## How it works"));
-    const caption = readme.indexOf("Real output of the example below");
-    expect(caption).toBeGreaterThan(-1);
-    expect(caption).toBeLessThan(tryIt);
+  it("links Getting started from Develop and runs the same check as CI", () => {
+    const develop = section("## Develop");
+    expect(develop).toContain("(docs/GETTING_STARTED.md)");
+    expect(develop).toContain("pnpm gate");
+    expect(existsSync(join(root, "docs/GETTING_STARTED.md"))).toBe(true);
   });
 
-  it("links the interactive architecture map, whose source exists", () => {
-    expect(readme).toMatch(
-      /\[[^\]]*Explore the interactive architecture map[^\]]*\]\(docs\/architecture\/index\.html\)/,
-    );
-    expect(
-      existsSync(join(root, "docs/architecture/runtime.architecture.json")),
-    ).toBe(true);
+  it("says MIT under License", () => {
+    expect(section("## License")).toMatch(/\bMIT\b/);
   });
 
-  it("states the released version, and Beta while it is pre-1.0", () => {
-    // The release workflow tags v<package.json version>, so this is the
-    // latest pushed tag once a release is out.
-    const status = lines.find((line) => line.startsWith("- **Status**"));
-    expect(status).toContain(`v${pkg.version}`);
-    if (pkg.version.startsWith("0.")) expect(status).toMatch(/— Beta\b/);
+  it("uses no internal jargon or hype in its prose", () => {
+    for (const word of BANNED) {
+      expect(prose, String(word)).not.toMatch(word);
+    }
   });
 
   it("resolves every relative link to a file in the repo", () => {
