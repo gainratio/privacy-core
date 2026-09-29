@@ -1,5 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { basename, resolve } from "node:path";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, readdirSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { basename, join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 
@@ -50,6 +52,39 @@ function actionName(step: Mapping): string {
     : "run";
 }
 
+// The release call as dagger-for-github `args`: every value is a double-quoted
+// environment variable, so bash expands it as one literal word, never as code.
+const RELEASE_ARGS =
+  'release-candidate --tag="$TAG" --commit-sha="$GITHUB_SHA" ' +
+  "--github-token=env:GITHUB_TOKEN export --path=release";
+
+// Dispatch tags an attacker could type; each must reach Dagger as one inert word.
+const HOSTILE_TAGS = [
+  "v0.3.0",
+  "",
+  "v0.3.0 --commit-sha=0",
+  "v0.3.0;touch pwned",
+  "$(touch pwned)",
+  "`touch pwned`",
+  "v0.3.0\ntouch pwned",
+  'v0.3.0" ; touch pwned ; "',
+];
+
+function releaseSteps(): readonly Mapping[] {
+  return steps(job(workflow("release-candidate.yml"), "candidate"));
+}
+
+// Expand args exactly as dagger-for-github's final bash step does, but print them.
+function expandActionArgs(args: string, tag: string, cwd: string): string[] {
+  const env = { TAG: tag, GITHUB_SHA: "a".repeat(40), PATH: "/usr/bin:/bin" };
+  const result = spawnSync("bash", ["-c", `printf '%s\\0' ${args}`], {
+    cwd,
+    env,
+  });
+  expect(result.status).toBe(0);
+  return result.stdout.toString().split("\0").slice(0, -1);
+}
+
 describe("Dagger CI/CD ingress", () => {
   it("keeps one protected Dagger ingress and the two local npm release bridges", () => {
     expect(readdirSync(WORKFLOWS).sort()).toEqual([
@@ -92,14 +127,10 @@ describe("exact Dagger npm release bridge", () => {
 
     expect(mapping(document.on).workflow_dispatch).toBeDefined();
     expect(candidate.if).toBe("github.ref == 'refs/heads/main'");
-    expect(candidateSteps.map(actionName)).toEqual([
-      "run",
-      CHECKOUT,
-      DAGGER,
-      "run",
-      UPLOAD,
-    ]);
-    expect(mapping(candidateSteps[4]?.with)).toEqual({
+    // Central fleet policy (hseshadr/ci): checkout, Dagger, upload, and no shell.
+    expect(candidateSteps.map(actionName)).toEqual([CHECKOUT, DAGGER, UPLOAD]);
+    expect(mapping(candidateSteps[0]?.with)["persist-credentials"]).toBe(false);
+    expect(mapping(candidateSteps[2]?.with)).toEqual({
       name: "privacy-core-$" + "{{ github.sha }}",
       path: "release/",
       "if-no-files-found": "error",
@@ -107,33 +138,38 @@ describe("exact Dagger npm release bridge", () => {
     });
   });
 
-  it("validates the dispatched tag before anything runs, and only ever as $TAG", () => {
-    const candidateSteps = steps(
-      job(workflow("release-candidate.yml"), "candidate"),
-    );
-    const [validate, , install, build] = candidateSteps;
+  it("hands the dispatched tag to Dagger only as a quoted $TAG", () => {
+    const [, release] = releaseSteps();
 
-    // The tag is attacker-shapeable text: it may reach shell only through the
-    // environment, and the first step refuses anything but a plain vX.Y.Z.
-    expect(validate?.name).toBe("Validate release tag");
-    expect(mapping(validate?.env)).toEqual({ TAG: "$" + "{{ inputs.tag }}" });
-    expect(String(validate?.run)).toContain("exit 1");
-    expect(String(validate?.run)).toContain(
-      '"$TAG" =~ ^v(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$ ]]',
-    );
-    // dagger-for-github pastes `args`/`call` into bash unquoted: install only.
-    expect(mapping(install?.with)).toEqual({ version: "0.21.8" });
-    expect(mapping(build?.env)).toEqual({
+    // The tag is attacker-shapeable text. dagger-for-github pastes `args` into
+    // bash, so it may appear there only as a double-quoted variable.
+    expect(mapping(release?.env)).toEqual({
       TAG: "$" + "{{ inputs.tag }}",
       GITHUB_TOKEN: "$" + "{{ github.token }}",
     });
-    expect(String(build?.run)).toContain(
-      'release-candidate --tag="$TAG" --commit-sha="$GITHUB_SHA"',
-    );
-    expect(String(build?.run)).toContain(
-      "--github-token=env:GITHUB_TOKEN export --path=release",
-    );
+    expect(mapping(release?.with)).toEqual({
+      version: "0.21.8",
+      verb: "call",
+      args: RELEASE_ARGS,
+    });
   });
+
+  it.each(HOSTILE_TAGS)(
+    "passes dispatched tag %j to Dagger as one inert argument",
+    (tag) => {
+      const args = String(mapping(releaseSteps()[1]?.with).args);
+      const cwd = mkdtempSync(join(tmpdir(), "tag-"));
+
+      const words = expandActionArgs(args, tag, cwd);
+
+      expect(words.slice(0, 3)).toEqual([
+        "release-candidate",
+        `--tag=${tag}`,
+        `--commit-sha=${"a".repeat(40)}`,
+      ]);
+      expect(readdirSync(cwd)).toEqual([]);
+    },
+  );
 
   it("publishes from a source-free OIDC and provenance bridge", () => {
     const document = workflow("publish.yml");

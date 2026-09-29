@@ -14,7 +14,7 @@ import pytest
 import privacy_core.main as main_module
 from privacy_core.main import PrivacyCore
 
-CENTRAL_SHA = "068c3c08c4d342b3dc2784cdc3804f2b2d51d622"
+CENTRAL_SHA = "9d491851fc5c65ad4a388ed2dd7bb4def4e1f007"
 REPOSITORY = "hseshadr/privacy-core"
 VALID_SHA = "a" * 40
 

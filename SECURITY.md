@@ -57,4 +57,4 @@ that skips the audit sink; or vault contents escaping the local device.
 **Known, documented limits (not vulnerabilities):** detection is deterministic
 (regex + checksums + dictionaries) — recall is bounded, and the human-visible preview
 is the backstop for anything the ruleset misses. The contextual NER tier that would
-widen recall is deliberately deferred (see the README roadmap).
+widen recall is deliberately deferred (see the roadmap in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#shipped-and-planned)).

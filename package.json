@@ -5,7 +5,7 @@
     "access": "public"
   },
   "type": "module",
-  "description": "Lets apps hide card numbers, emails and similar IDs from AI, then restore them. Names and other details aren't caught.",
+  "description": "A TypeScript library that hides card numbers, emails and ID numbers from AI models, then puts them back in the reply.",
   "keywords": [
     "pii",
     "pii-redaction",
