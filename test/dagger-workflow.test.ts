@@ -11,6 +11,21 @@ const DAGGER = "dagger/dagger-for-github";
 const UPLOAD = "actions/upload-artifact";
 const DOWNLOAD = "actions/download-artifact";
 
+// The central lineage proof (hseshadr/ci#49), pinned at a literal commit.
+const LINEAGE_MODULE =
+  /^github\.com\/hseshadr\/ci\/modules\/portfolio-foundation@[0-9a-f]{40}$/;
+// Every value is a quoted env var bound to the triggering run, so a hard-coded
+// run id or SHA cannot make the proof about a different run.
+const PROVENANCE_ARGS =
+  'release-provenance --github-token=env:GH_TOKEN --repository="$GITHUB_REPOSITORY" ' +
+  '--run-id="$RUN_ID" --head-sha="$HEAD_SHA" --publish-run-id="$GITHUB_RUN_ID" ' +
+  "export --path=github-context.json";
+const PUBLISH_ARGS =
+  'publish --candidate=release --expected-sha="$HEAD_SHA" ' +
+  "--oidc-url=env:ACTIONS_ID_TOKEN_REQUEST_URL " +
+  "--oidc-token=env:ACTIONS_ID_TOKEN_REQUEST_TOKEN " +
+  "--github-context=github-context.json";
+
 type Mapping = Readonly<Record<string, unknown>>;
 
 function mapping(value: unknown): Mapping {
@@ -173,50 +188,22 @@ describe("exact Dagger npm release bridge", () => {
       contents: "read",
       "id-token": "write",
     });
-    expect(publishSteps.map(actionName)).toEqual([
-      "run",
-      DOWNLOAD,
-      DAGGER,
-      "run",
-      "run",
-    ]);
-    expect(mapping(publishSteps[2]?.with)).toEqual({ version: "0.21.8" });
-    const [, , , context, release] = publishSteps;
-    // npm's provenance needs the runner's GitHub Actions context inside the
-    // Dagger container; the Dagger publisher validates every value.
-    for (const name of [
-      "GITHUB_EVENT_NAME",
-      "GITHUB_REF",
-      "GITHUB_REPOSITORY",
-      "GITHUB_REPOSITORY_ID",
-      "GITHUB_REPOSITORY_OWNER_ID",
-      "GITHUB_RUN_ATTEMPT",
-      "GITHUB_RUN_ID",
-      "GITHUB_SERVER_URL",
-      "GITHUB_SHA",
-      "GITHUB_WORKFLOW",
-      "GITHUB_WORKFLOW_REF",
-      "RUNNER_ENVIRONMENT",
-    ]) {
-      expect(String(context?.run)).toContain(`${name}: env.${name}`);
-    }
+    // Lineage and provenance come from the central Dagger function; no step
+    // runs repository shell (hseshadr/ci#49).
+    expect(publishSteps.map(actionName)).toEqual([DAGGER, DOWNLOAD, DAGGER]);
+    expect(publishSteps.filter((step) => "run" in step)).toEqual([]);
+    const release = publishSteps[2];
     expect(mapping(release?.env)).toEqual({
       HEAD_SHA: "$" + "{{ github.event.workflow_run.head_sha }}",
     });
-    const command = String(release?.run);
     // The publisher CODE comes from the trusted default-branch commit this
     // workflow runs on, never from the candidate's (dispatch-controlled) sha.
-    expect(command).toContain(
-      '-m "github.com/hseshadr/privacy-core@$GITHUB_SHA"',
-    );
-    expect(command).not.toContain("privacy-core@$HEAD_SHA");
-    expect(command).toContain(
-      'publish --candidate=release --expected-sha="$HEAD_SHA"',
-    );
-    expect(command).toContain(
-      "--oidc-url=env:ACTIONS_ID_TOKEN_REQUEST_URL --oidc-token=env:ACTIONS_ID_TOKEN_REQUEST_TOKEN",
-    );
-    expect(command).toContain("--github-context=github-context.json");
+    expect(mapping(release?.with)).toEqual({
+      version: "0.21.8",
+      verb: "call",
+      module: "github.com/hseshadr/privacy-core@$" + "{{ github.sha }}",
+      args: PUBLISH_ARGS,
+    });
     expect(publishSteps.some((step) => actionName(step) === CHECKOUT)).toBe(
       false,
     );
@@ -225,48 +212,46 @@ describe("exact Dagger npm release bridge", () => {
     );
   });
 
-  it("publishes only a candidate built by release-candidate.yml for a main commit", () => {
+  it("proves the candidate's lineage in Dagger before any artifact is touched", () => {
     const [lineage, download] = steps(job(workflow("publish.yml"), "publish"));
-    const script = String(lineage?.run);
+    const invocation = { ...mapping(lineage?.with) };
 
-    // First step, before any artifact is touched.
-    expect(lineage?.name).toBe("Verify the candidate's lineage");
+    // `head_branch == default_branch` alone is satisfied by a dispatch on a TAG
+    // named `main`. The central hseshadr/ci function proves from GitHub's run
+    // records that the run is a successful release-candidate.yml dispatch for
+    // exactly HEAD_SHA and that main contains HEAD_SHA. Only then does it emit
+    // npm's provenance context, derived from the publish run record.
+    expect(actionName(lineage ?? {})).toBe(DAGGER);
     expect(mapping(lineage?.env)).toEqual({
       GH_TOKEN: "$" + "{{ github.token }}",
-      HEAD_SHA: "$" + "{{ github.event.workflow_run.head_sha }}",
       RUN_ID: "$" + "{{ github.event.workflow_run.id }}",
+      HEAD_SHA: "$" + "{{ github.event.workflow_run.head_sha }}",
     });
-    expect(script).toContain("set -euo pipefail");
-    expect(script).toContain('[[ "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]');
-    expect(script).toContain('[[ "$RUN_ID" =~ ^[0-9]+$ ]]');
-    // The triggering run really is a successful dispatch of release-candidate.yml
-    // on this repository, for exactly HEAD_SHA...
-    expect(script).toContain(
-      'gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID"',
-    );
-    for (const clause of [
-      ".head_sha == $sha",
-      '.event == "workflow_dispatch"',
-      '.conclusion == "success"',
-      '(.path | split("@")[0]) == ".github/workflows/release-candidate.yml"',
-      ".repository.full_name == $repo",
-      ".head_repository.full_name == $repo",
-    ]) {
-      expect(script).toContain(clause);
-    }
-    // ...and HEAD_SHA is reachable from main. `head_branch == default_branch`
-    // alone is satisfied by a dispatch on a TAG named `main`.
-    expect(script).toContain(
-      'gh api "repos/$GITHUB_REPOSITORY/compare/$HEAD_SHA...$GITHUB_SHA" --jq .status',
-    );
-    expect(script).toContain(
-      '[[ "$status" == identical || "$status" == ahead ]]',
-    );
+    expect(String(invocation.module)).toMatch(LINEAGE_MODULE);
+    delete invocation.module;
+    expect(invocation).toEqual({
+      version: "0.21.8",
+      verb: "call",
+      args: PROVENANCE_ARGS,
+    });
     // The archive is that run's own artifact for that exact commit.
     expect(mapping(download?.with)).toMatchObject({
       name: "privacy-core-$" + "{{ github.event.workflow_run.head_sha }}",
       "run-id": "$" + "{{ github.event.workflow_run.id }}",
     });
+  });
+
+  it("pastes no expression into any publisher Dagger input", () => {
+    const pasted = steps(job(workflow("publish.yml"), "publish"))
+      .filter((step) => actionName(step) === DAGGER)
+      .flatMap((step) =>
+        Object.entries(mapping(step.with))
+          .filter(([key]) => key !== "module")
+          .map(([, value]) => String(value)),
+      );
+
+    expect(pasted.length).toBeGreaterThan(0);
+    expect(pasted.filter((value) => value.includes("$" + "{{"))).toEqual([]);
   });
 
   it("keeps every external bridge pinned to immutable identity", () => {

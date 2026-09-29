@@ -26,71 +26,38 @@ jobs:
     steps:
       # `head_branch == default_branch` above is satisfied by a dispatch on a
       # TAG named `main`, so it cannot bind the candidate to main on its own.
-      # Before any artifact is touched: the triggering run must be a successful
-      # dispatch of release-candidate.yml in this repository for exactly
-      # HEAD_SHA, and HEAD_SHA must be reachable from the default-branch commit
-      # this workflow runs on.
-      - name: Verify the candidate's lineage
-        shell: bash
+      # Before any artifact is touched, the central hseshadr/ci lineage function
+      # (pinned at a literal commit, hseshadr/ci#49) proves from GitHub's run
+      # records that the triggering run is a successful dispatch of
+      # release-candidate.yml here for exactly HEAD_SHA, and that main contains
+      # HEAD_SHA. Only then does it write github-context.json: the GitHub
+      # Actions context npm needs for provenance (and for the OIDC exchange),
+      # derived from this publish run's own record, outside the release/
+      # candidate. Event values reach the action's bash only as quoted env vars.
+      - uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
         env:
           GH_TOKEN: ${{ github.token }}
-          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           RUN_ID: ${{ github.event.workflow_run.id }}
-        run: |
-          set -euo pipefail
-          [[ "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
-          [[ "$RUN_ID" =~ ^[0-9]+$ ]]
-          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" |
-            jq -e --arg sha "$HEAD_SHA" --arg repo "$GITHUB_REPOSITORY" '
-              .head_sha == $sha
-              and .event == "workflow_dispatch"
-              and .status == "completed"
-              and .conclusion == "success"
-              and (.path | split("@")[0]) == ".github/workflows/release-candidate.yml"
-              and .repository.full_name == $repo
-              and .head_repository.full_name == $repo' > /dev/null
-          status="$(gh api "repos/$GITHUB_REPOSITORY/compare/$HEAD_SHA...$GITHUB_SHA" --jq .status)"
-          [[ "$status" == identical || "$status" == ahead ]]
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        with:
+          version: "0.21.8"
+          verb: call
+          module: github.com/hseshadr/ci/modules/portfolio-foundation@3de1c4bef2558fd6610b6dda1504b657de7a954d
+          args: release-provenance --github-token=env:GH_TOKEN --repository="$GITHUB_REPOSITORY" --run-id="$RUN_ID" --head-sha="$HEAD_SHA" --publish-run-id="$GITHUB_RUN_ID" export --path=github-context.json
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: privacy-core-${{ github.event.workflow_run.head_sha }}
           path: release
           github-token: ${{ github.token }}
           run-id: ${{ github.event.workflow_run.id }}
-      # CLI setup only. dagger-for-github pastes its `args`/`call` into bash
-      # unquoted, so the publish call runs below with every value quoted.
+      # The publisher CODE is loaded from github.sha — the default-branch commit
+      # this workflow runs on — never from the candidate's own sha. It validates
+      # every provenance value before npm sees it.
       - uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
-        with:
-          version: "0.21.8"
-      # npm only generates provenance (and only attempts the OIDC exchange) when
-      # it can see this run's GitHub Actions context, which does not reach a
-      # Dagger container on its own. It is handed over as a file, outside the
-      # release/ candidate, and the Dagger publisher validates every value.
-      - name: Record the GitHub Actions provenance context
-        shell: bash
-        run: >-
-          jq -n '{
-          GITHUB_EVENT_NAME: env.GITHUB_EVENT_NAME,
-          GITHUB_REF: env.GITHUB_REF,
-          GITHUB_REPOSITORY: env.GITHUB_REPOSITORY,
-          GITHUB_REPOSITORY_ID: env.GITHUB_REPOSITORY_ID,
-          GITHUB_REPOSITORY_OWNER_ID: env.GITHUB_REPOSITORY_OWNER_ID,
-          GITHUB_RUN_ATTEMPT: env.GITHUB_RUN_ATTEMPT,
-          GITHUB_RUN_ID: env.GITHUB_RUN_ID,
-          GITHUB_SERVER_URL: env.GITHUB_SERVER_URL,
-          GITHUB_SHA: env.GITHUB_SHA,
-          GITHUB_WORKFLOW: env.GITHUB_WORKFLOW,
-          GITHUB_WORKFLOW_REF: env.GITHUB_WORKFLOW_REF,
-          RUNNER_ENVIRONMENT: env.RUNNER_ENVIRONMENT
-          }' > github-context.json
-      # The publisher CODE is loaded from GITHUB_SHA — the default-branch commit
-      # this workflow runs on — never from the candidate's own sha.
-      - name: Publish exact Dagger candidate
-        shell: bash
         env:
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
-        run: >-
-          dagger --progress plain call -m "github.com/hseshadr/privacy-core@$GITHUB_SHA"
-          publish --candidate=release --expected-sha="$HEAD_SHA"
-          --oidc-url=env:ACTIONS_ID_TOKEN_REQUEST_URL --oidc-token=env:ACTIONS_ID_TOKEN_REQUEST_TOKEN
-          --github-context=github-context.json
+        with:
+          version: "0.21.8"
+          verb: call
+          module: github.com/hseshadr/privacy-core@${{ github.sha }}
+          args: publish --candidate=release --expected-sha="$HEAD_SHA" --oidc-url=env:ACTIONS_ID_TOKEN_REQUEST_URL --oidc-token=env:ACTIONS_ID_TOKEN_REQUEST_TOKEN --github-context=github-context.json
