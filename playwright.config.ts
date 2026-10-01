@@ -24,7 +24,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "pnpm --filter @edgeproc/privacy-core-demo dev",
+    command: "pnpm --filter @gainratio/privacy-core-demo dev",
     url: "http://localhost:5173",
     reuseExistingServer: !process.env.CI,
     env: {

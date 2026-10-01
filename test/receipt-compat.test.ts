@@ -18,7 +18,7 @@ import {
  * proves it.
  *
  * Provenance of the vectors: produced by the PUBLISHED
- * `@edgeproc/privacy-core@0.2.2` from npm, resolved against `@edgeproc/avow@0.1.0`
+ * `@edgeproc/privacy-core@0.2.2` from npm (the old name), resolved against `@edgeproc/avow@0.1.0`
  * (the version its lockfile pinned), by calling its `sealEgressReceipt` with
  * the seed below. They are frozen here verbatim; nothing in this file derives
  * them from the current code.

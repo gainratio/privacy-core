@@ -1,5 +1,5 @@
 /**
- * Test-only fixtures, exposed via the `@edgeproc/privacy-core/testing` subpath.
+ * Test-only fixtures, exposed via the `@gainratio/privacy-core/testing` subpath.
  * These are NOT part of the production barrel — keep synthetic data out of the
  * front door so consumers never ship a fixture by accident.
  */

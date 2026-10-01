@@ -101,7 +101,7 @@ flowchart TD
   `DEFAULT_OPENROUTER_TIMEOUT_MS` (30 seconds) and streams responses through
   `DEFAULT_OPENROUTER_MAX_RESPONSE_BYTES` (1 MiB) before parsing JSON.
 - **A payload is earned, not forged.** The brand factory (`mintPendingRedaction`) is not
-  exported from the barrel; test fixtures live behind `@edgeproc/privacy-core/testing`.
+  exported from the barrel; test fixtures live behind `@gainratio/privacy-core/testing`.
 - **The guarantee is tested at the wire.** The Playwright e2e intercepts the real
   outbound request and asserts only placeholders cross — the same proof a user gets
   from the browser's network tab.
@@ -128,9 +128,10 @@ flowchart TD
   extension, cross-site-scripting bug or dependency, which can read the in-memory vault and a
   browser-held signing key; and whatever the AI provider does with the labeled text. Details:
   [what this does not protect you from](#what-this-does-not-protect-you-from).
-- **Verify a release:** 0.3.0 is published from CI with npm provenance (an SLSA build
-  attestation linking the tarball to this repository's workflow). Check it with
-  `npm view @edgeproc/privacy-core@0.3.0 dist.attestations` and, in a project that installed
+- **Verify a release:** releases are published from CI with npm provenance (an SLSA build
+  attestation linking the tarball to this repository's workflow). 0.3.1 is the first under
+  `@gainratio/privacy-core`; 0.3.0 and older were `@edgeproc/privacy-core`. Check one with
+  `npm view @gainratio/privacy-core@0.3.1 dist.attestations` and, in a project that installed
   it, `npm audit signatures`.
 
 See [SECURITY.md](../SECURITY.md) for reporting a vulnerability.

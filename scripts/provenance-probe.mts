@@ -66,7 +66,7 @@ function throwawayPackage(): string {
   writeFileSync(
     join(dir, "package.json"),
     JSON.stringify({
-      name: "@edgeproc/provenance-probe",
+      name: "@gainratio/provenance-probe",
       version: "0.0.0",
       repository: {
         type: "git",

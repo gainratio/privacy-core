@@ -70,7 +70,7 @@ describe("README contract", () => {
   const lines = readme.split("\n");
 
   it("opens with the package name, then one plain sentence equal to the package description", () => {
-    expect(lines[0]).toBe("# @edgeproc/privacy-core");
+    expect(lines[0]).toBe("# @gainratio/privacy-core");
     const tagline = lines
       .slice(1)
       .find((line) => line.trim() !== "" && !line.startsWith("[!["));
@@ -86,7 +86,7 @@ describe("README contract", () => {
       .split("\n")
       .slice(1)
       .find((line) => line.trim() !== "");
-    expect(next).toContain("**`npm install @edgeproc/privacy-core`**");
+    expect(next).toContain("**`npm install @gainratio/privacy-core`**");
   });
 
   it("keeps at most three badges (CI, version, license)", () => {

@@ -170,7 +170,7 @@ def test_should_keep_the_source_free_publisher_typed_and_provenanced() -> None:
 
 
 def test_should_accept_only_one_checksumming_npm_candidate() -> None:
-    archive = "edgeproc-privacy-core-1.2.3.tgz"
+    archive = "gainratio-privacy-core-1.2.3.tgz"
     candidate = RecordingCandidate([archive, "SHA256SUMS"], f"{'a' * 64}  {archive}\n")
 
     result = asyncio.run(PrivacyCore._candidate_archive(cast(dagger.Directory, candidate)))
@@ -179,7 +179,7 @@ def test_should_accept_only_one_checksumming_npm_candidate() -> None:
 
 
 def test_should_reject_extra_or_misidentified_candidate_material() -> None:
-    archive = "edgeproc-privacy-core-1.2.3.tgz"
+    archive = "gainratio-privacy-core-1.2.3.tgz"
     candidate = RecordingCandidate([archive, "SHA256SUMS", "source.ts"], f"{'a' * 64}  other.tgz\n")
 
     with pytest.raises(ValueError, match="candidate must contain only"):
@@ -387,7 +387,7 @@ class ProbeSource:
 
 
 def publish_with(context: str, monkeypatch: pytest.MonkeyPatch) -> RecordingContainer:
-    archive = "edgeproc-privacy-core-1.2.3.tgz"
+    archive = "gainratio-privacy-core-1.2.3.tgz"
     candidate = RecordingCandidate([archive, "SHA256SUMS"], f"{'a' * 64}  {archive}\n")
     container = RecordingContainer()
     monkeypatch.setattr(main_module, "dag", ContainerDag(container))
@@ -435,7 +435,7 @@ def test_should_set_the_provenance_context_before_npm_publish_runs(
     assert publish == [
         "npm",
         "publish",
-        "./edgeproc-privacy-core-1.2.3.tgz",
+        "./gainratio-privacy-core-1.2.3.tgz",
         "--access",
         "public",
         "--provenance",

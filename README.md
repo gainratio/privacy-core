@@ -1,11 +1,11 @@
-# @edgeproc/privacy-core
+# @gainratio/privacy-core
 
 A TypeScript library that hides card numbers, emails and ID numbers from AI models, then puts them back in the reply.
 
-**`npm install @edgeproc/privacy-core`**. Works in Node 22.13+ and in the browser (tested in Chromium). No account, no API key needed to try it.
+**`npm install @gainratio/privacy-core`**. Works in Node 22.13+ and in the browser (tested in Chromium). No account, no API key needed to try it.
 
 [![CI](https://github.com/hseshadr/privacy-core/actions/workflows/dagger.yml/badge.svg)](https://github.com/hseshadr/privacy-core/actions/workflows/dagger.yml)
-[![npm](https://img.shields.io/npm/v/@edgeproc/privacy-core)](https://www.npmjs.com/package/@edgeproc/privacy-core)
+[![npm](https://img.shields.io/npm/v/@gainratio/privacy-core)](https://www.npmjs.com/package/@gainratio/privacy-core)
 [![License](https://img.shields.io/github/license/hseshadr/privacy-core)](LICENSE)
 
 Say you build a banking, billing or support app and want an "ask the AI about this"
@@ -24,18 +24,19 @@ cannot skip the approval step by accident: TypeScript refuses to compile it.
 ## Try it
 
 You need Node 22.13 or newer. No API key and no network call after the install. This
-was run against the published npm package, version 0.3.0.
+was run against the published npm package, version 0.3.0 under its old name
+`@edgeproc/privacy-core`; version 0.3.1 is the same code under this name.
 
 1. Make an empty project and install the package:
 
    ```bash
-   mkdir try-privacy-core && cd try-privacy-core && npm init -y && npm install @edgeproc/privacy-core
+   mkdir try-privacy-core && cd try-privacy-core && npm init -y && npm install @gainratio/privacy-core
    ```
 
 2. Save this as `example.mjs`:
 
    ```js
-   import { approve, guardedProvider, NoLLMProvider, redactForEgress, rehydrate, Vault } from "@edgeproc/privacy-core";
+   import { approve, guardedProvider, NoLLMProvider, redactForEgress, rehydrate, Vault } from "@gainratio/privacy-core";
 
    const text = "Maria Lopez asked: refund $482.10 to card 4242 4242 4242 4242 and email maria@example.com.";
    const vault = new Vault(); // keeps the real values, in memory, on this machine
@@ -115,7 +116,7 @@ vault.
 ## Install
 
 ```bash
-npm install @edgeproc/privacy-core     # or: pnpm add / yarn add
+npm install @gainratio/privacy-core     # or: pnpm add / yarn add
 ```
 
 ES modules only. Node 22.13+ or a modern browser bundler. One dependency,

@@ -18,11 +18,11 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: [
         {
-          find: /^@edgeproc\/privacy-core\/testing$/,
+          find: /^@gainratio\/privacy-core\/testing$/,
           replacement: `${libRoot}/testing.ts`,
         },
         {
-          find: /^@edgeproc\/privacy-core$/,
+          find: /^@gainratio\/privacy-core$/,
           replacement: `${libRoot}/index.ts`,
         },
       ],

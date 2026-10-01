@@ -40,7 +40,7 @@ importers:
 
   examples/demo:
     dependencies:
-      '@edgeproc/privacy-core':
+      '@gainratio/privacy-core':
         specifier: workspace:*
         version: link:../..
     devDependencies:

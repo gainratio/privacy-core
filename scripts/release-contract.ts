@@ -10,7 +10,7 @@ import {
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 
-const PACKAGE = "@edgeproc/privacy-core";
+const PACKAGE = "@gainratio/privacy-core";
 const SHA = /^[0-9a-f]{40}$/;
 const VERSION = /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/;
 type Json = Readonly<Record<string, unknown>>;
@@ -224,7 +224,7 @@ function validateExports(root: string, manifest: Json): void {
 function artifact(values: Options): void {
   const expected = identity(values);
   const archive = required(values, "archive");
-  if (basename(archive) !== `edgeproc-privacy-core-${expected.version}.tgz`) {
+  if (basename(archive) !== `gainratio-privacy-core-${expected.version}.tgz`) {
     fail("archive filename does not match package version");
   }
   const extracted = unpack(archive);

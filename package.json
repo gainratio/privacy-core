@@ -1,6 +1,6 @@
 {
-  "name": "@edgeproc/privacy-core",
-  "version": "0.3.0",
+  "name": "@gainratio/privacy-core",
+  "version": "0.3.1",
   "publishConfig": {
     "access": "public"
   },
@@ -61,7 +61,7 @@
     "test:e2e": "playwright test",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "demo": "pnpm --filter @edgeproc/privacy-core-demo dev",
+    "demo": "pnpm --filter @gainratio/privacy-core-demo dev",
     "gate": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e && pnpm build"
   },
   "devDependencies": {
