@@ -4,7 +4,7 @@ Guidance for Claude Code when working in this repository.
 
 ## What this is
 
-`@edgeproc/privacy-core` is a browser-side structured-identifier redaction boundary for LLM calls: raw
+`@gainratio/privacy-core` is a browser-side structured-identifier redaction boundary for LLM calls: raw
 text stays on-device, only policy-approved redacted text egresses, and replies
 are rehydrated locally from an in-memory vault. The current version and what has
 shipped live in `CHANGELOG.md` and on npm — don't restate release status in this

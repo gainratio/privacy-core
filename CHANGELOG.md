@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] — 2026-10-01
+
 ### Changed
+
+- **Renamed to `@gainratio/privacy-core`; old name deprecated.** New releases
+  ship only as `@gainratio/privacy-core`. `@edgeproc/privacy-core` 0.3.0 and
+  older keep installing. Change `npm install @edgeproc/privacy-core` to
+  `npm install @gainratio/privacy-core` and update imports, including the
+  `/testing` subpath. No code change. The dependency on `@edgeproc/avow ^0.4.1`
+  is unchanged in this release; moving to `@gainratio/avow` is a separate change.
 
 - **The README is rewritten in plain English.** It now says who the library is
   for, what it does, one real example run against the published 0.3.0 package

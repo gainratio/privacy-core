@@ -18,8 +18,8 @@
     "exactOptionalPropertyTypes": true,
     "types": ["vite/client"],
     "paths": {
-      "@edgeproc/privacy-core": ["../../src/index.ts"],
-      "@edgeproc/privacy-core/testing": ["../../src/testing.ts"]
+      "@gainratio/privacy-core": ["../../src/index.ts"],
+      "@gainratio/privacy-core/testing": ["../../src/testing.ts"]
     }
   },
   "include": ["src", "vite.config.ts"]

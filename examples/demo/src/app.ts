@@ -10,8 +10,8 @@ import {
   rehydrate,
   type Span,
   Vault,
-} from "@edgeproc/privacy-core";
-import { SYNTHETIC_STATEMENT } from "@edgeproc/privacy-core/testing";
+} from "@gainratio/privacy-core";
+import { SYNTHETIC_STATEMENT } from "@gainratio/privacy-core/testing";
 import "./styles.css";
 
 interface Refs {

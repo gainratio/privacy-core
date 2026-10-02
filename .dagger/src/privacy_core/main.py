@@ -55,7 +55,7 @@ PROVENANCE_CONTEXT: Final[dict[str, re.Pattern[str]]] = {
     "RUNNER_ENVIRONMENT": re.compile(r"github-hosted"),
 }
 ARCHIVE_NAME: Final = re.compile(
-    r"^edgeproc-privacy-core-(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.tgz$"
+    r"^gainratio-privacy-core-(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.tgz$"
 )
 CHECKSUM_LINE: Final = re.compile(r"^[0-9a-f]{64}  (?P<archive>[^\n]+)\n$")
 SOURCE_EXCLUDES: Final = [
@@ -334,7 +334,7 @@ class PrivacyCore:
 
     def _candidate(self, source: dagger.Directory, tag: str) -> dagger.Container:
         version = tag.removeprefix("v")
-        archive = f"/candidate/edgeproc-privacy-core-{version}.tgz"
+        archive = f"/candidate/gainratio-privacy-core-{version}.tgz"
         built = self._dependencies(source).with_exec(["pnpm", "build"])
         built = self._candidate_root(built).with_exec(
             ["npm", "pack", "--ignore-scripts", "--pack-destination", "/candidate"]

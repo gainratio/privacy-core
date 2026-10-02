@@ -27,7 +27,7 @@ function sourceFixture(): string {
   const root = mkdtempSync(join(tmpdir(), "privacy-core-source-"));
   writeFileSync(
     join(root, "package.json"),
-    JSON.stringify({ name: "@edgeproc/privacy-core", version: "1.2.3" }),
+    JSON.stringify({ name: "@gainratio/privacy-core", version: "1.2.3" }),
   );
   writeFileSync(
     join(root, "CHANGELOG.md"),
@@ -44,7 +44,7 @@ function packageFixture(root: string): string {
   writeFileSync(
     join(packageRoot, "package.json"),
     JSON.stringify({
-      name: "@edgeproc/privacy-core",
+      name: "@gainratio/privacy-core",
       version: "1.2.3",
       files: ["dist"],
       exports: { ".": "./dist/index.js", "./testing": "./dist/testing.js" },
@@ -60,7 +60,7 @@ function packageFixture(root: string): string {
   );
   writeFileSync(join(packageRoot, "dist/index.d.ts"), "export {};\n");
   writeFileSync(join(packageRoot, "dist/testing.d.ts"), "export {};\n");
-  const archive = join(root, "edgeproc-privacy-core-1.2.3.tgz");
+  const archive = join(root, "gainratio-privacy-core-1.2.3.tgz");
   const packed = spawnSync("tar", ["-czf", archive, "package"], { cwd: root });
   expect(packed.status).toBe(0);
   return archive;
@@ -103,7 +103,7 @@ describe("release candidate contract", () => {
         .status,
     ).toBe(0);
     expect(readFileSync(checksum, "utf8")).toMatch(
-      /^[0-9a-f]{64} {2}edgeproc-privacy-core-1\.2\.3\.tgz\n$/,
+      /^[0-9a-f]{64} {2}gainratio-privacy-core-1\.2\.3\.tgz\n$/,
     );
   });
 
@@ -174,7 +174,7 @@ describe("release candidate contract", () => {
     writeFileSync(
       join(wrongPackage, "package.json"),
       JSON.stringify({
-        name: "@edgeproc/privacy-core",
+        name: "@gainratio/privacy-core",
         version: "9.9.9",
         exports: { ".": "./dist/index.js" },
       }),
@@ -182,7 +182,7 @@ describe("release candidate contract", () => {
     writeFileSync(join(wrongPackage, "dist/index.js"), "export {};\n");
     const wrongArchive = join(
       wrongVersionRoot,
-      "edgeproc-privacy-core-1.2.3.tgz",
+      "gainratio-privacy-core-1.2.3.tgz",
     );
     expect(
       spawnSync("tar", ["-czf", wrongArchive, "package"], {
@@ -205,7 +205,7 @@ describe("release candidate contract", () => {
     writeFileSync(
       join(packageRoot, "package.json"),
       JSON.stringify({
-        name: "@edgeproc/privacy-core",
+        name: "@gainratio/privacy-core",
         version: "1.2.3",
         exports: { ".": "./dist/missing.js" },
       }),

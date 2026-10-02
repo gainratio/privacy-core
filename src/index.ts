@@ -1,5 +1,5 @@
 /**
- * `@edgeproc/privacy-core` — a browser-side privacy boundary for LLM calls.
+ * `@gainratio/privacy-core` — a browser-side privacy boundary for LLM calls.
  *
  * Raw private text stays on-device; only policy-approved, redacted text can
  * reach a provider; the model's reply is rehydrated locally. The load-bearing
@@ -8,7 +8,7 @@
  * compile error.
  *
  * This barrel is the PRODUCTION surface. Test fixtures live behind the
- * `@edgeproc/privacy-core/testing` subpath, never here.
+ * `@gainratio/privacy-core/testing` subpath, never here.
  */
 
 // Detection spine.

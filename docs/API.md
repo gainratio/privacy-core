@@ -1,6 +1,6 @@
 # Using the library
 
-The full API, with runnable examples: the four-step loop, the compile-time check, signed receipts, calling a real model, every export, and every setting. All examples were run against the published npm package, version 0.3.0. Back to the [README](../README.md).
+The full API, with runnable examples: the four-step loop, the compile-time check, signed receipts, calling a real model, every export, and every setting. All examples were run against the published npm package, version 0.3.0 under its old name `@edgeproc/privacy-core`; version 0.3.1 is the same code under the new name. Back to the [README](../README.md).
 
 ## The full loop, step by step
 
@@ -10,7 +10,7 @@ network call. Save this as `example.mjs` in any empty directory (it prints each 
 ```js
 import {
   approve, guardedProvider, NoLLMProvider, redactForEgress, rehydrate, Vault,
-} from "@edgeproc/privacy-core";
+} from "@gainratio/privacy-core";
 
 const statement =
   "Grace Hopper, card 4242 4242 4242 4242, was charged $482.10 at Whole Foods on 01/14/2026.";
@@ -36,7 +36,7 @@ console.log("you read:", rehydrate(reply.redactedText, vault, payload.vaultRef))
 Then:
 
 ```bash
-npm install @edgeproc/privacy-core && node example.mjs
+npm install @gainratio/privacy-core && node example.mjs
 ```
 
 That prints, verbatim:
@@ -74,7 +74,7 @@ redaction pipeline (`redactForEgress` → `approve`). A plain `string` is not
 assignable to it, so this:
 
 ```ts
-import { NoLLMProvider } from "@edgeproc/privacy-core";
+import { NoLLMProvider } from "@gainratio/privacy-core";
 
 const provider = new NoLLMProvider();
 await provider.complete("my card is 4242 4242 4242 4242");
@@ -122,7 +122,7 @@ import {
   NoLLMProvider,
   redactForEgress,
   Vault,
-} from "@edgeproc/privacy-core";
+} from "@gainratio/privacy-core";
 
 const seedHex = generateSeedHex(); // your signing key, generated on this device
 const receipts = [];

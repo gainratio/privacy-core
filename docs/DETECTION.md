@@ -1,6 +1,6 @@
 # What it recognizes
 
-The exact list of formats `@edgeproc/privacy-core` finds and replaces, and the ones it does not. Back to the [README](../README.md).
+The exact list of formats `@gainratio/privacy-core` finds and replaces, and the ones it does not. Back to the [README](../README.md).
 
 Detection is a fixed ruleset, so the honest version of "it finds the private
 bits" is a list. This is the whole of it. If a format is not in the left column,
