@@ -7,7 +7,7 @@ import {
   SignatureInvalid,
   SignerMismatch,
   verifySignature,
-} from "@edgeproc/avow";
+} from "@gainratio/avow";
 import { describe, expect, it } from "vitest";
 import {
   buildEgressSubject,

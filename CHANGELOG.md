@@ -7,10 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] — 2026-10-04
+
 ### Changed
 
-- **`@edgeproc/avow` moves from `^0.4.1` to `^0.5.0`; 0.2.x receipts keep
-  verifying.** avow 0.5 adds a `schema: "avow.receipt/v1"` field to every
+- **The receipt library is now `@gainratio/avow` `^0.5.3`.** avow was renamed
+  the same way this package was, from `@edgeproc/avow` to `@gainratio/avow`.
+  0.3.1 still depended on the old name at `^0.4.1`; 0.3.2 depends only on the
+  new one. If your app imports avow itself (for example `publicKeyHex` or
+  `generateSeedHex` to set up receipts), change that import to
+  `@gainratio/avow` too, so you do not end up with two copies. Nothing in the
+  privacy-core API changes. A test now fails if any `@edgeproc/` package name
+  creeps back into `package.json` or the release workflows.
+
+- **avow 0.5 is supported, and 0.2.x receipts keep verifying.** avow 0.5 adds a `schema: "avow.receipt/v1"` field to every
   receipt, and its `verifySignature` rejects a receipt without one. Receipts
   sealed by 0.2.x have no such field. To keep the 0.3.0 promise, use the new
   `verifyEgressReceipt(receipt, publicKey)`. When a receipt has no `schema`

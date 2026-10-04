@@ -2,7 +2,7 @@ import {
   PayloadHashMismatch,
   publicKeyHex,
   ReceiptSchemaMismatch,
-} from "@edgeproc/avow";
+} from "@gainratio/avow";
 import { describe, expect, it } from "vitest";
 import {
   type StoredEgressReceipt,

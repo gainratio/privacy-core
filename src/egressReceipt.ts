@@ -5,7 +5,7 @@
  * (see {@link file://./egress.ts}). This module makes that decision *provable*:
  * an allow or deny is expressed as a small governed record — an
  * `EgressSubject` — and signed into a tamper-evident receipt via the shared
- * `@edgeproc/avow` signing envelope. A holder of the signer's public key can later
+ * `@gainratio/avow` signing envelope. A holder of the signer's public key can later
  * verify exactly which egress decisions were taken, without ever seeing the
  * content.
  *
@@ -28,11 +28,11 @@ import {
   type SignedReceipt,
   signPayload,
   verifySignature,
-} from "@edgeproc/avow";
+} from "@gainratio/avow";
 
 // Re-exported so receipt verifiers can recompute `args_digest` with the SAME
-// canonical hash the sealer used, without importing @edgeproc/avow directly.
-export { contentHash } from "@edgeproc/avow";
+// canonical hash the sealer used, without importing @gainratio/avow directly.
+export { contentHash } from "@gainratio/avow";
 
 /** Whether the guard let the redacted text leave the device, or refused it. */
 export type EgressDecision = "allow" | "deny";
@@ -40,7 +40,7 @@ export type EgressDecision = "allow" | "deny";
 /**
  * The governed effect: sending redacted text to a named provider was either
  * allowed or denied. A type alias (not an interface) so it satisfies the
- * `@edgeproc/avow` `JsonValue` constraint via TypeScript's implicit index
+ * `@gainratio/avow` `JsonValue` constraint via TypeScript's implicit index
  * signature — the subject IS a plain JSON object.
  */
 export type EgressSubject = {

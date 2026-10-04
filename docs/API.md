@@ -111,11 +111,11 @@ Avow envelope is deterministic, so two identical decisions produce identical
 receipts; a downstream audit store must track receipt occurrences if it needs
 to count sends rather than only verify their content.
 
-Signing and verifying live in `@edgeproc/avow`, so add it alongside:
-`npm install @edgeproc/avow`.
+Signing and verifying live in `@gainratio/avow`, so add it alongside:
+`npm install @gainratio/avow`.
 
 ```js
-import { generateSeedHex, publicKeyHex, verifySignature } from "@edgeproc/avow";
+import { generateSeedHex, publicKeyHex, verifySignature } from "@gainratio/avow";
 import {
   approve,
   guardedProvider,

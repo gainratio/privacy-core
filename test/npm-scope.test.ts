@@ -1,7 +1,6 @@
 // The package publishes as @gainratio/privacy-core. Its own old @edgeproc name
-// must not creep back into anything that decides what gets published. The
-// @edgeproc/avow dependency is the one allowed old-scope name until avow is
-// consumed from @gainratio.
+// must not creep back into anything that decides what gets published, and
+// neither may any other @edgeproc package: avow is consumed as @gainratio/avow.
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -11,7 +10,7 @@ const read = (path: string): string => readFileSync(join(ROOT, path), "utf8");
 const WORKFLOWS = readdirSync(join(ROOT, ".github/workflows"))
   .filter((name) => name.endsWith(".yml"))
   .map((name) => `.github/workflows/${name}`);
-const OLD_FORMS = ["@edgeproc/privacy-core", "edgeproc-privacy-core-"];
+const OLD_FORMS = ["@edgeproc/", "edgeproc-privacy-core-"];
 
 describe("npm scope", () => {
   it("publishes under @gainratio", () => {

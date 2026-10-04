@@ -24,8 +24,9 @@ cannot skip the approval step by accident: TypeScript refuses to compile it.
 ## Try it
 
 You need Node 22.13 or newer. No API key and no network call after the install. This
-was run against the published npm package, version 0.3.0 under its old name
-`@edgeproc/privacy-core`; version 0.3.1 is the same code under this name.
+was first run against the published npm package, version 0.3.0 under its old name
+`@edgeproc/privacy-core`, and rerun with the same output against the version 0.3.2
+package (on `@gainratio/avow` 0.5.3) before it was released.
 
 1. Make an empty project and install the package:
 
@@ -120,7 +121,7 @@ npm install @gainratio/privacy-core     # or: pnpm add / yarn add
 ```
 
 ES modules only. Node 22.13+ or a modern browser bundler. One dependency,
-[`@edgeproc/avow`](https://www.npmjs.com/package/@edgeproc/avow), which signs the
+[`@gainratio/avow`](https://www.npmjs.com/package/@gainratio/avow), which signs the
 optional receipts (a signed record of every allowed or refused send; see
 [the API docs](docs/API.md#receipts-a-record-of-what-was-allowed-and-what-was-blocked)).
 
