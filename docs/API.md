@@ -170,6 +170,13 @@ refused: UnapprovedPayloadError
 signature check: passed
 ```
 
+**Receipts stored by 0.2.x.** They have no `schema` field, and avow ^0.5's
+`verifySignature` rejects them. Check them with privacy-core's
+`verifyEgressReceipt(receipt, publicKey)` instead. It adds the label (which is
+not signed), runs the full check, and returns `{ legacy: true, compat:
+"pre-v1-schema" }` so you can see which path ran. A receipt with any other
+`schema` value is rejected.
+
 **What a receipt is worth, precisely.** A signature proves a record has not been
 altered *since it was signed*. It says nothing about whether the machine that
 signed it was already compromised at the time. If an attacker controls the host,
@@ -225,6 +232,9 @@ Everything `src/index.ts` exports, and nothing more:
 | `EgressSubject` | type | the signed, hash-only record of one egress decision |
 | `EgressSubjectInput` | interface | what the caller supplies to build an `EgressSubject` |
 | `sealEgressReceipt` | fn | sign one egress decision into a receipt |
+| `verifyEgressReceipt` | fn | verify a stored receipt against a pinned key; also accepts 0.2.x receipts that have no `schema` field |
+| `StoredEgressReceipt` | type | a receipt as stored: `schema` is optional so 0.2.x receipts fit |
+| `EgressReceiptVerification` | type | verify result: `{ legacy: false }`, or `{ legacy: true, compat: "pre-v1-schema" }` for a 0.2.x receipt |
 | `makeProvider` | fn | config-driven provider selector |
 | `ProviderConfig` | interface | host-supplied config (API key, model, endpoint, timeout and response budget) for `makeProvider` |
 | `SelectedProvider` | interface | the provider `makeProvider` picked, plus a label for the UI |

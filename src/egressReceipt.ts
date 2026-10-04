@@ -22,7 +22,13 @@
  * happened over *this* content, not the content.
  */
 
-import { contentHash, type SignedReceipt, signPayload } from "@edgeproc/avow";
+import {
+  contentHash,
+  RECEIPT_SCHEMA,
+  type SignedReceipt,
+  signPayload,
+  verifySignature,
+} from "@edgeproc/avow";
 
 // Re-exported so receipt verifiers can recompute `args_digest` with the SAME
 // canonical hash the sealer used, without importing @edgeproc/avow directly.
@@ -110,4 +116,45 @@ export async function sealEgressReceipt(
   seedHex: string,
 ): Promise<SignedReceipt<EgressSubject>> {
   return signPayload(await buildEgressSubject(input), seedHex);
+}
+
+/**
+ * A receipt as it may sit in storage. Receipts sealed by 0.2.x (avow < 0.5)
+ * have no `schema` field; current ones carry `"avow.receipt/v1"`.
+ */
+export type StoredEgressReceipt = Omit<
+  SignedReceipt<EgressSubject>,
+  "schema"
+> & { readonly schema?: string };
+
+/**
+ * The outcome of a successful verify. `legacy: true` means the receipt had no
+ * `schema` field and was checked as a pre-v1 receipt (`compat`
+ * `"pre-v1-schema"`). Its signature, hash and signer were checked in full.
+ */
+export type EgressReceiptVerification =
+  | { readonly legacy: false }
+  | { readonly legacy: true; readonly compat: "pre-v1-schema" };
+
+/**
+ * Verify a stored egress receipt against a pinned signer key. Throws the same
+ * coded avow errors as `verifySignature`.
+ *
+ * Keeps 0.2.x receipts verifiable: avow ^0.5 requires `schema:
+ * "avow.receipt/v1"`, which is not part of the signed bytes. A receipt with
+ * NO `schema` field gets that label before the check and is reported as
+ * legacy. A receipt with any other `schema` value (including an explicit
+ * `undefined`) goes to avow as-is and is rejected.
+ */
+export async function verifyEgressReceipt(
+  receipt: StoredEgressReceipt,
+  expectedPublicKey: string,
+): Promise<EgressReceiptVerification> {
+  const legacy = !Object.hasOwn(receipt, "schema");
+  const envelope = legacy ? { ...receipt, schema: RECEIPT_SCHEMA } : receipt;
+  await verifySignature(
+    envelope as SignedReceipt<EgressSubject>,
+    expectedPublicKey,
+  );
+  return legacy ? { legacy, compat: "pre-v1-schema" } : { legacy };
 }
