@@ -7,3 +7,7 @@ coverage
 *.log
 /test-results/
 /playwright-report/
+
+# macOS Finder metadata
+.DS_Store
+**/.DS_Store
