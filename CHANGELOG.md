@@ -21,15 +21,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   creeps back into `package.json` or the release workflows.
 
 - **avow 0.5 is supported, and 0.2.x receipts keep verifying.** avow 0.5 adds a `schema: "avow.receipt/v1"` field to every
-  receipt, and its `verifySignature` rejects a receipt without one. Receipts
-  sealed by 0.2.x have no such field. To keep the 0.3.0 promise, use the new
-  `verifyEgressReceipt(receipt, publicKey)`. When a receipt has no `schema`
-  field it adds the label before checking. That is safe because the label is
-  not part of the signed bytes, so the hash, signer and signature are still
-  checked in full. The result says `{ legacy: true, compat: "pre-v1-schema" }`
-  for such a receipt and `{ legacy: false }` for a current one. A receipt with
-  any other `schema` value is still rejected (`ReceiptSchemaMismatch`). New
-  receipts from `sealEgressReceipt` now carry the field.
+  receipt. Receipts sealed by 0.2.x have no such field. avow 0.5.3's
+  `verifySignature` accepts a receipt with no `schema` field (earlier 0.5
+  releases rejected it), so the 0.3.0 promise holds without any shim. The new
+  `verifyEgressReceipt(receipt, publicKey)` labels which kind you have: it runs
+  the full hash, signer and signature check and says `{ legacy: true, compat:
+  "pre-v1-schema" }` for a receipt with no `schema` field and `{ legacy: false }`
+  for a current one. The label is advisory only: `schema` is not part of the
+  signed bytes, so anyone can add or strip it without breaking the signature.
+  A receipt with any other `schema` value is still rejected
+  (`ReceiptSchemaMismatch`). New receipts from `sealEgressReceipt` now carry the
+  field.
   `test/receipt-compat.test.ts` still verifies the frozen 0.2.2 vectors, and
   `test/receipt-legacy.test.ts` covers the label, wrong schemas and tampering.
 
