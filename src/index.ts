@@ -30,9 +30,12 @@ export {
   DETECTOR_VERSION,
   type EgressDecision,
   type EgressGovernance,
+  type EgressReceiptVerification,
   type EgressSubject,
   type EgressSubjectInput,
+  type StoredEgressReceipt,
   sealEgressReceipt,
+  verifyEgressReceipt,
 } from "./egressReceipt.js";
 // Typed fail-closed errors.
 export {

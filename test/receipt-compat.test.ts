@@ -1,21 +1,18 @@
-import {
-  PayloadHashMismatch,
-  publicKeyHex,
-  type SignedReceipt,
-  verifySignature,
-} from "@edgeproc/avow";
+import { PayloadHashMismatch, publicKeyHex } from "@edgeproc/avow";
 import { describe, expect, it } from "vitest";
 import {
   buildEgressSubject,
   contentHash,
-  type EgressSubject,
+  type StoredEgressReceipt,
   sealEgressReceipt,
+  verifyEgressReceipt as verifySignature,
 } from "../src/index.js";
 
 /**
- * Receipts sealed by 0.2.x must keep verifying after the move to
- * `@edgeproc/avow` ^0.4.1 — the CHANGELOG promises it, so a fixed vector
- * proves it.
+ * Receipts sealed by 0.2.x must keep verifying — the CHANGELOG promises it, so
+ * a fixed vector proves it. They carry no `schema` field (avow ^0.5 requires
+ * one), so they go through privacy-core's `verifyEgressReceipt`, which treats a
+ * schema-less receipt as legacy.
  *
  * Provenance of the vectors: produced by the PUBLISHED
  * `@edgeproc/privacy-core@0.2.2` from npm (the old name), resolved against `@edgeproc/avow@0.1.0`
@@ -28,7 +25,7 @@ const SEED_HEX =
 
 const V022_VECTORS: ReadonlyArray<{
   readonly redactedText: string;
-  readonly receipt: SignedReceipt<EgressSubject>;
+  readonly receipt: StoredEgressReceipt;
 }> = [
   {
     redactedText: "Email [EMAIL_1] about SSN [SSN_1].",
@@ -70,14 +67,14 @@ const V022_VECTORS: ReadonlyArray<{
   },
 ];
 
-describe("0.2.x receipts verify under @edgeproc/avow ^0.4.1", () => {
+describe("0.2.x receipts verify under @edgeproc/avow ^0.5", () => {
   for (const { redactedText, receipt } of V022_VECTORS) {
     const label = receipt.payload.decision;
 
     it(`verifies the frozen 0.2.2 ${label} receipt against its pinned key`, async () => {
       const pinned = await publicKeyHex(SEED_HEX);
       expect(pinned).toBe(receipt.public_key);
-      await expect(verifySignature(receipt, pinned)).resolves.toBeUndefined();
+      await expect(verifySignature(receipt, pinned)).resolves.toBeDefined();
     });
 
     it(`re-seals the same ${label} decision to byte-identical output`, async () => {
@@ -93,7 +90,10 @@ describe("0.2.x receipts verify under @edgeproc/avow ^0.4.1", () => {
         detectorVersion: "1",
       };
       expect(await buildEgressSubject(input)).toEqual(receipt.payload);
-      expect(await sealEgressReceipt(input, SEED_HEX)).toEqual(receipt);
+      // Today's sealer adds only the unsigned `schema` label avow ^0.5 emits.
+      const { schema, ...sealed } = await sealEgressReceipt(input, SEED_HEX);
+      expect(schema).toBe("avow.receipt/v1");
+      expect(sealed).toEqual(receipt);
     });
 
     it(`still rejects the ${label} receipt once its payload is tampered`, async () => {
