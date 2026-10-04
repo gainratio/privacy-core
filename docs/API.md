@@ -170,12 +170,15 @@ refused: UnapprovedPayloadError
 signature check: passed
 ```
 
-**Receipts stored by 0.2.x.** They have no `schema` field, and avow ^0.5's
-`verifySignature` rejects them. Check them with privacy-core's
-`verifyEgressReceipt(receipt, publicKey)` instead. It adds the label (which is
-not signed), runs the full check, and returns `{ legacy: true, compat:
-"pre-v1-schema" }` so you can see which path ran. A receipt with any other
-`schema` value is rejected.
+**Receipts stored by 0.2.x.** They have no `schema` field. avow ^0.5.3's
+`verifySignature` accepts them as they are, so you do not need privacy-core to
+verify them. Use `verifyEgressReceipt(receipt, publicKey)` when you also want to
+know which kind you have: it runs the full check and returns `{ legacy: true,
+compat: "pre-v1-schema" }` for a receipt with no `schema` field and
+`{ legacy: false }` for a current one. A receipt with any other `schema` value is
+rejected. The `legacy` flag is advisory only: `schema` is not part of the signed
+payload, so anyone holding a receipt can add or remove the field without
+breaking the signature. Do not base a trust decision on it.
 
 **What a receipt is worth, precisely.** A signature proves a record has not been
 altered *since it was signed*. It says nothing about whether the machine that

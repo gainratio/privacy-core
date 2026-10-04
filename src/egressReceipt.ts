@@ -131,6 +131,8 @@ export type StoredEgressReceipt = Omit<
  * The outcome of a successful verify. `legacy: true` means the receipt had no
  * `schema` field and was checked as a pre-v1 receipt (`compat`
  * `"pre-v1-schema"`). Its signature, hash and signer were checked in full.
+ * The flag is advisory only: `schema` is not part of the signed payload, so it
+ * can be added or stripped without breaking the signature.
  */
 export type EgressReceiptVerification =
   | { readonly legacy: false }
@@ -140,11 +142,12 @@ export type EgressReceiptVerification =
  * Verify a stored egress receipt against a pinned signer key. Throws the same
  * coded avow errors as `verifySignature`.
  *
- * Keeps 0.2.x receipts verifiable: avow ^0.5 requires `schema:
- * "avow.receipt/v1"`, which is not part of the signed bytes. A receipt with
- * NO `schema` field gets that label before the check and is reported as
- * legacy. A receipt with any other `schema` value (including an explicit
- * `undefined`) goes to avow as-is and is rejected.
+ * Labels 0.2.x receipts: avow ^0.5.3 already verifies a receipt with no
+ * `schema` field, so this does not make them verify; it reports which kind
+ * ran. A receipt with NO `schema` field gets the v1 label (not part of the
+ * signed bytes) before the check and is reported as legacy. A receipt with any
+ * other `schema` value (including an explicit `undefined`) goes to avow as-is
+ * and is rejected.
  */
 export async function verifyEgressReceipt(
   receipt: StoredEgressReceipt,
