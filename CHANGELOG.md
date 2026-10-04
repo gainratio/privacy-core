@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking for stored receipts: `@edgeproc/avow` moves from `^0.4.1` to
+  `^0.5.0`, and 0.2.x receipts no longer verify as stored.** avow 0.5 adds a
+  `schema: "avow.receipt/v1"` field to every receipt and its `verifySignature`
+  rejects any receipt without it (`ReceiptSchemaMismatch`). This reverses the
+  0.3.0 promise that receipts sealed by 0.2.x still verify. The fix for a stored
+  receipt is to add `schema: "avow.receipt/v1"` before verifying. The field is
+  not part of the signed bytes, so the payload, hash and signature are unchanged
+  and verify. New receipts from `sealEgressReceipt` now carry the field.
+  `test/receipt-compat.test.ts` pins both halves against the frozen 0.2.2
+  vectors.
+
 ## [0.3.1] — 2026-10-01
 
 ### Changed
