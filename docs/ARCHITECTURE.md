@@ -114,7 +114,7 @@ flowchart TD
 - **Verified:** every payload a provider receives was minted by `approve()`. TypeScript checks
   that at build time (a branded type), and `assertApproved()` checks it again at run time by
   object identity in a module-private registry. Optional receipts are Ed25519-signed with your
-  key via [`@edgeproc/avow`](https://www.npmjs.com/package/@edgeproc/avow) and verifiable with
+  key via [`@gainratio/avow`](https://www.npmjs.com/package/@gainratio/avow) and verifiable with
   your public key.
 - **Refuses rather than warns:** an unapproved or hand-built payload (`UnapprovedPayloadError`,
   before any network call); input over 512 KiB (`InputTooLargeError`, before detection); input

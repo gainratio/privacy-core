@@ -1,4 +1,4 @@
-import { PayloadHashMismatch, publicKeyHex } from "@edgeproc/avow";
+import { PayloadHashMismatch, publicKeyHex } from "@gainratio/avow";
 import { describe, expect, it } from "vitest";
 import {
   buildEgressSubject,
@@ -67,7 +67,7 @@ const V022_VECTORS: ReadonlyArray<{
   },
 ];
 
-describe("0.2.x receipts verify under @edgeproc/avow ^0.5", () => {
+describe("0.2.x receipts verify under @gainratio/avow ^0.5", () => {
   for (const { redactedText, receipt } of V022_VECTORS) {
     const label = receipt.payload.decision;
 

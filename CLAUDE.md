@@ -15,7 +15,7 @@ file.
 TypeScript strict / pnpm (pinned via `packageManager`) / Node >= 22.13 (24 in CI) /
 Biome (lint + format + cognitive-complexity) / Vitest 4 with coverage thresholds
 pinned at 100% (statements / lines / functions / branches) / Playwright e2e /
-`tsc` build. One runtime dependency — `@edgeproc/avow`, the receipt-signing
+`tsc` build. One runtime dependency — `@gainratio/avow`, the receipt-signing
 envelope; everything else in `devDependencies` is toolchain.
 
 ## Layout

@@ -1,6 +1,6 @@
 {
   "name": "@gainratio/privacy-core",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "publishConfig": {
     "access": "public"
   },
@@ -51,7 +51,7 @@
   },
   "sideEffects": false,
   "dependencies": {
-    "@edgeproc/avow": "^0.5.0"
+    "@gainratio/avow": "^0.5.3"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

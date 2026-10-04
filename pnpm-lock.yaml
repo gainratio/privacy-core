@@ -12,9 +12,9 @@ importers:
 
   .:
     dependencies:
-      '@edgeproc/avow':
-        specifier: ^0.5.0
-        version: 0.5.0
+      '@gainratio/avow':
+        specifier: ^0.5.3
+        version: 0.5.3
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.5.14
@@ -128,8 +128,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@edgeproc/avow@0.5.0':
-    resolution: {integrity: sha512-1gqOLra9ZaZbQR2HFjnLmgSH5GanSG3kS5Lnp9FJpoGTdWJMJZdjhmSdrZQrfBOOVM68aYK6Jx75bkMWouJIfw==}
+  '@gainratio/avow@0.5.3':
+    resolution: {integrity: sha512-EeIvZ2xkXDiLpJRhVyODbTNscURy0Xqnzxucbkn9UfZSUIuSqwDfG/EvfSl0AcOLnJQ8PNMM2s2Oq41ACC8uqQ==}
     engines: {node: '>=22.13'}
 
   '@jridgewell/resolve-uri@3.1.2':
@@ -754,7 +754,7 @@ snapshots:
   '@biomejs/cli-win32-x64@2.5.15':
     optional: true
 
-  '@edgeproc/avow@0.5.0':
+  '@gainratio/avow@0.5.3':
     dependencies:
       '@noble/ed25519': 3.2.0
       canonicalize: 3.0.0
