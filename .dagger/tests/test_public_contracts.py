@@ -14,7 +14,7 @@ import pytest
 import privacy_core.main as main_module
 from privacy_core.main import PrivacyCore
 
-CENTRAL_SHA = "a895f726e9786bcfd2bdf68f87d3d5c4b411f702"
+CENTRAL_SHA = "a88866232e679b6353d2b75bceb01969be739f67"
 REPOSITORY = "hseshadr/privacy-core"
 ORG_REPOSITORY = "gainratio/privacy-core"
 PUBLISH_WORKFLOW_REF = "/.github/workflows/publish.yml@refs/heads/main"
