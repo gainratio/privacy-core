@@ -15,10 +15,12 @@ import privacy_core.main as main_module
 from privacy_core.main import PrivacyCore
 
 CENTRAL_SHA = "a88866232e679b6353d2b75bceb01969be739f67"
-REPOSITORY = "hseshadr/privacy-core"
-ORG_REPOSITORY = "gainratio/privacy-core"
+# The canonical owner first. The pre-transfer identity stays allowed until the
+# gainratio org move finishes; there is deliberately no default to fall back on.
+REPOSITORY = "gainratio/privacy-core"
+PRE_TRANSFER_REPOSITORY = "hseshadr/privacy-core"
 PUBLISH_WORKFLOW_REF = "/.github/workflows/publish.yml@refs/heads/main"
-ALLOWED = (REPOSITORY, ORG_REPOSITORY)
+ALLOWED = (REPOSITORY, PRE_TRANSFER_REPOSITORY)
 FOREIGN_REPOSITORIES = (
     "attacker/privacy-core",
     "gainratio/other-repo",
@@ -269,7 +271,7 @@ def test_should_bind_guard_then_run_products_on_the_bound_source(
     monkeypatch.setattr(core, "_run_ci", run_products)
 
     # When
-    result = asyncio.run(core.ci(VALID_SHA))
+    result = asyncio.run(core.ci(VALID_SHA, REPOSITORY))
 
     # Then
     assert result == "Privacy Core canonical Dagger gate passed"
@@ -293,24 +295,30 @@ def test_should_stop_before_products_when_foundation_rejects(
 
     # When / Then
     with pytest.raises(ValueError, match="guard rejected"):
-        asyncio.run(core.ci(VALID_SHA))
+        asyncio.run(core.ci(VALID_SHA, REPOSITORY))
     assert events == ["source"]
 
 
 # Repository identity: the run's own `github.repository`, checked by exact
-# membership in a two-item allow-list. The org move (hseshadr -> gainratio)
-# changes the run's identity; no other owner and no other repo may pass.
-def test_should_allow_exactly_the_user_and_org_repositories() -> None:
+# membership in a two-item allow-list. gainratio is canonical; hseshadr stays
+# only until the org move finishes. No other owner and no other repo may pass.
+def test_should_allow_exactly_the_org_then_pre_transfer_repositories() -> None:
     assert main_module.ALLOWED_REPOSITORIES == (
-        "hseshadr/privacy-core",
         "gainratio/privacy-core",
+        "hseshadr/privacy-core",
     )
 
 
-def test_should_default_every_identity_argument_to_todays_repository() -> None:
+def test_should_require_every_identity_argument_with_no_default_owner() -> None:
     for function in (PrivacyCore.ci, PrivacyCore.release_candidate):
         parameter = inspect.signature(function).parameters["repository"]
-        assert parameter.default == "hseshadr/privacy-core"
+        assert parameter.default is inspect.Parameter.empty
+
+
+def test_should_fetch_release_source_and_probe_as_the_gainratio_repository() -> None:
+    assert main_module.REPOSITORY_URL == "https://github.com/gainratio/privacy-core.git"
+    assert main_module.PROBE_CONTEXT["GITHUB_REPOSITORY"] == "gainratio/privacy-core"
+    assert main_module.PROBE_CONTEXT["GITHUB_WORKFLOW_REF"].startswith("gainratio/privacy-core/")
 
 
 def recording_core(
@@ -551,7 +559,7 @@ def test_should_set_the_provenance_context_before_npm_publish_runs(
         ({"GITHUB_REPOSITORY": "gainratio-evil/privacy-core"}, "lookalike owner"),
         ({"GITHUB_REPOSITORY": ""}, "empty repository"),
         (
-            {"GITHUB_WORKFLOW_REF": f"{ORG_REPOSITORY}{PUBLISH_WORKFLOW_REF}"},
+            {"GITHUB_WORKFLOW_REF": f"{PRE_TRANSFER_REPOSITORY}{PUBLISH_WORKFLOW_REF}"},
             "workflow ref from a different repository than the run",
         ),
         (
@@ -646,7 +654,9 @@ def test_should_refuse_a_release_tag_that_is_not_plain_semver(tag: str) -> None:
     core = PrivacyCore.__new__(PrivacyCore)
 
     with pytest.raises(ValueError, match="tag"):
-        asyncio.run(core.release_candidate(tag, VALID_SHA, cast(dagger.Secret, object())))
+        asyncio.run(
+            core.release_candidate(tag, VALID_SHA, cast(dagger.Secret, object()), REPOSITORY)
+        )
 
 
 def test_should_probe_npm_provenance_in_exactly_the_publisher_container(

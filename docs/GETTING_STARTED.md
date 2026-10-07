@@ -31,7 +31,7 @@ Traps we actually hit:
 ## 2. Clone, install, run
 
 ```bash
-git clone https://github.com/hseshadr/privacy-core   # 1s
+git clone https://github.com/gainratio/privacy-core   # 1s
 cd privacy-core
 corepack enable                                      # 0s
 pnpm install                                         # 1s (warm cache; allow a minute cold)

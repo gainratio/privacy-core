@@ -120,7 +120,7 @@ describe("Dagger CI/CD ingress", () => {
     expect(mapping(ingress[1]?.with)).toEqual({
       version: "0.21.8",
       // The run's own repository identity; Dagger checks it against an exact
-      // allow-list (hseshadr/privacy-core or gainratio/privacy-core).
+      // allow-list (gainratio/privacy-core, or hseshadr/privacy-core mid-move).
       call:
         "ci --commit-sha=$" +
         "{{ github.sha }} --repository=$" +
@@ -213,7 +213,7 @@ describe("exact Dagger npm release bridge", () => {
     expect(mapping(release?.with)).toEqual({
       version: "0.21.8",
       verb: "call",
-      module: "github.com/hseshadr/privacy-core@$" + "{{ github.sha }}",
+      module: "github.com/gainratio/privacy-core@$" + "{{ github.sha }}",
       args: PUBLISH_ARGS,
     });
     expect(publishSteps.some((step) => actionName(step) === CHECKOUT)).toBe(

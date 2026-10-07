@@ -4,9 +4,9 @@ A TypeScript library that hides card numbers, emails and ID numbers from AI mode
 
 **`npm install @gainratio/privacy-core`**. Works in Node 22.13+ and in the browser (tested in Chromium). No account, no API key needed to try it.
 
-[![CI](https://github.com/hseshadr/privacy-core/actions/workflows/dagger.yml/badge.svg)](https://github.com/hseshadr/privacy-core/actions/workflows/dagger.yml)
+[![CI](https://github.com/gainratio/privacy-core/actions/workflows/dagger.yml/badge.svg)](https://github.com/gainratio/privacy-core/actions/workflows/dagger.yml)
 [![npm](https://img.shields.io/npm/v/@gainratio/privacy-core)](https://www.npmjs.com/package/@gainratio/privacy-core)
-[![License](https://img.shields.io/github/license/hseshadr/privacy-core)](LICENSE)
+[![License](https://img.shields.io/github/license/gainratio/privacy-core)](LICENSE)
 
 Say you build a banking, billing or support app and want an "ask the AI about this"
 button. The text your users paste in is full of card numbers, account numbers and
@@ -130,7 +130,7 @@ optional receipts (a signed record of every allowed or refused send; see
 You need Node 24 (what CI uses) and pnpm via `corepack`.
 
 ```bash
-git clone https://github.com/hseshadr/privacy-core && cd privacy-core
+git clone https://github.com/gainratio/privacy-core && cd privacy-core
 corepack enable && pnpm install
 pnpm exec playwright install chromium   # first time only, for the browser tests
 pnpm gate

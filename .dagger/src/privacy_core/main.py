@@ -21,11 +21,12 @@ GITLEAKS_IMAGE: Final = (
     "ghcr.io/gitleaks/gitleaks:v8.29.1@sha256:"
     "aa036a2f4bdfe3cc3c55fa4326308efabb4a6be498c883c864fd1d0d5585438a"
 )
-# The run's own `github.repository` must be one of exactly these two: today's
-# user-owned repository, and the same repository after the gainratio org move.
-# Exact membership only, never an owner wildcard. Defaults stay today's value.
-ALLOWED_REPOSITORIES: Final = ("hseshadr/privacy-core", "gainratio/privacy-core")
-REPOSITORY: Final = ALLOWED_REPOSITORIES[0]
+# The run's own `github.repository` must be one of exactly these two: the
+# canonical gainratio repository, and the pre-transfer hseshadr identity kept
+# until the org move finishes. Exact membership only, never an owner wildcard.
+# Gates take the identity from `github.repository`; there is no default owner.
+ALLOWED_REPOSITORIES: Final = ("gainratio/privacy-core", "hseshadr/privacy-core")
+REPOSITORY: Final = "gainratio/privacy-core"
 REPOSITORY_URL: Final = f"https://github.com/{REPOSITORY}.git"
 PNPM_VERSION: Final = "11.5.0"
 SHA_LENGTH: Final = 40
@@ -199,7 +200,7 @@ class PrivacyCore:
 
     @function
     @check
-    async def ci(self, commit_sha: str, repository: str = REPOSITORY) -> str:
+    async def ci(self, commit_sha: str, repository: str) -> str:
         """Guard the exact caller source before the canonical product gate."""
         self._require_repository(repository)
         source = await self._verified_source(self.source, commit_sha, repository)
@@ -245,7 +246,7 @@ class PrivacyCore:
         tag: str,
         commit_sha: str,
         github_token: dagger.Secret,
-        repository: str = REPOSITORY,
+        repository: str,
     ) -> dagger.Directory:
         """Build one exact Dagger-proven npm candidate without publishing."""
         self._require_tag(tag)
