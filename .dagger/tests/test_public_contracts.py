@@ -16,6 +16,16 @@ from privacy_core.main import PrivacyCore
 
 CENTRAL_SHA = "a895f726e9786bcfd2bdf68f87d3d5c4b411f702"
 REPOSITORY = "hseshadr/privacy-core"
+ORG_REPOSITORY = "gainratio/privacy-core"
+PUBLISH_WORKFLOW_REF = "/.github/workflows/publish.yml@refs/heads/main"
+ALLOWED = (REPOSITORY, ORG_REPOSITORY)
+FOREIGN_REPOSITORIES = (
+    "attacker/privacy-core",
+    "gainratio/other-repo",
+    "hseshadr/privacy-core-evil",
+    "gainratio-evil/privacy-core",
+    "",
+)
 VALID_SHA = "a" * 40
 
 
@@ -69,20 +79,23 @@ class RecordingSync:
 class RecordingFoundation:
     """Model the exact source-binding and guard boundary."""
 
-    def __init__(self, events: list[str], error: ValueError | None = None) -> None:
+    def __init__(
+        self, events: list[str], error: ValueError | None = None, repository: str = REPOSITORY
+    ) -> None:
         self.events = events
         self.error = error
+        self.repository = repository
         self.bound = cast(dagger.Directory, "bound-source")
 
     def source(
         self, source: dagger.Directory, repository: str, commit_sha: str
     ) -> dagger.Directory:
-        assert (source, repository, commit_sha) == ("caller-source", REPOSITORY, VALID_SHA)
+        assert (source, repository, commit_sha) == ("caller-source", self.repository, VALID_SHA)
         self.events.append("source")
         return self.bound
 
     def guard(self, source: dagger.Directory, repository: str, commit_sha: str) -> dagger.Container:
-        assert (source, repository, commit_sha) == (self.bound, REPOSITORY, VALID_SHA)
+        assert (source, repository, commit_sha) == (self.bound, self.repository, VALID_SHA)
         return cast(dagger.Container, RecordingSync("guard", self.events, self.error))
 
 
@@ -284,6 +297,93 @@ def test_should_stop_before_products_when_foundation_rejects(
     assert events == ["source"]
 
 
+# Repository identity: the run's own `github.repository`, checked by exact
+# membership in a two-item allow-list. The org move (hseshadr -> gainratio)
+# changes the run's identity; no other owner and no other repo may pass.
+def test_should_allow_exactly_the_user_and_org_repositories() -> None:
+    assert main_module.ALLOWED_REPOSITORIES == (
+        "hseshadr/privacy-core",
+        "gainratio/privacy-core",
+    )
+
+
+def test_should_default_every_identity_argument_to_todays_repository() -> None:
+    for function in (PrivacyCore.ci, PrivacyCore.release_candidate):
+        parameter = inspect.signature(function).parameters["repository"]
+        assert parameter.default == "hseshadr/privacy-core"
+
+
+def recording_core(
+    foundation: RecordingFoundation, events: list[str], monkeypatch: pytest.MonkeyPatch
+) -> PrivacyCore:
+    core = PrivacyCore.__new__(PrivacyCore)
+    core.source = cast(dagger.Directory, "caller-source")
+
+    async def run_products(*_arguments: object) -> None:
+        events.append("product")
+
+    monkeypatch.setattr(main_module, "dag", RecordingDag(foundation))
+    monkeypatch.setattr(core, "_run_ci", run_products)
+    return core
+
+
+@pytest.mark.parametrize("repository", ALLOWED)
+def test_should_bind_and_guard_the_runs_own_allowed_repository(
+    repository: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Given
+    events: list[str] = []
+    core = recording_core(RecordingFoundation(events, repository=repository), events, monkeypatch)
+
+    # When
+    asyncio.run(core.ci(VALID_SHA, repository))
+
+    # Then
+    assert events == ["source", "guard", "product"]
+
+
+@pytest.mark.parametrize("repository", FOREIGN_REPOSITORIES)
+def test_should_refuse_a_foreign_repository_before_foundation_runs(
+    repository: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Given
+    events: list[str] = []
+    core = recording_core(RecordingFoundation(events), events, monkeypatch)
+
+    # When / Then
+    with pytest.raises(ValueError, match="repository"):
+        asyncio.run(core.ci(VALID_SHA, repository))
+    assert events == []
+
+
+@pytest.mark.parametrize("repository", FOREIGN_REPOSITORIES)
+def test_should_refuse_a_foreign_repository_before_hosted_release_lookup(
+    repository: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Given
+    core = PrivacyCore.__new__(PrivacyCore)
+
+    def hosted(*_arguments: object) -> None:
+        raise AssertionError("hosted lookup must not run for a foreign repository")
+
+    monkeypatch.setattr(core, "_hosted", hosted)
+
+    # When / Then
+    with pytest.raises(ValueError, match="repository"):
+        asyncio.run(
+            core.release_candidate("v1.2.3", VALID_SHA, cast(dagger.Secret, object()), repository)
+        )
+
+
+@pytest.mark.parametrize("repository", ALLOWED)
+def test_should_look_up_hosted_release_state_for_the_runs_repository(
+    repository: str,
+) -> None:
+    command = PrivacyCore._contract_command("github", "v1.2.3", VALID_SHA, repository)
+
+    assert command[command.index("--repository") + 1] == repository
+
+
 # The GitHub Actions variables npm 11.13.0 (bundled with the pinned node:24.16.0
 # image) reads to detect GitHub Actions (ci-info: GITHUB_ACTIONS) and to write
 # the SLSA provenance statement (libnpmpublish/lib/provenance.js). Without them
@@ -446,6 +546,21 @@ def test_should_set_the_provenance_context_before_npm_publish_runs(
     ("change", "reason"),
     [
         ({"GITHUB_REPOSITORY": "attacker/privacy-core"}, "foreign repository"),
+        ({"GITHUB_REPOSITORY": "gainratio/other-repo"}, "other org repository"),
+        ({"GITHUB_REPOSITORY": "hseshadr/privacy-core-evil"}, "suffixed repository"),
+        ({"GITHUB_REPOSITORY": "gainratio-evil/privacy-core"}, "lookalike owner"),
+        ({"GITHUB_REPOSITORY": ""}, "empty repository"),
+        (
+            {"GITHUB_WORKFLOW_REF": f"{ORG_REPOSITORY}{PUBLISH_WORKFLOW_REF}"},
+            "workflow ref from a different repository than the run",
+        ),
+        (
+            {
+                "GITHUB_REPOSITORY": "attacker/privacy-core",
+                "GITHUB_WORKFLOW_REF": f"attacker/privacy-core{PUBLISH_WORKFLOW_REF}",
+            },
+            "foreign repository with a matching workflow ref",
+        ),
         (
             {"GITHUB_WORKFLOW_REF": f"{REPOSITORY}/.github/workflows/other.yml@refs/heads/main"},
             "workflow other than the trusted publisher",
@@ -469,6 +584,53 @@ def test_should_refuse_a_provenance_context_that_is_not_this_publisher(
     with pytest.raises(ValueError, match="provenance context"):
         publish_with(json.dumps(context), monkeypatch)
     assert reason
+
+
+@pytest.mark.parametrize("repository", ALLOWED)
+def test_should_publish_from_the_user_or_org_repository(
+    repository: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Given
+    workflow_ref = f"{repository}/.github/workflows/publish.yml@refs/heads/main"
+    context = {
+        **VALID_CONTEXT,
+        "GITHUB_REPOSITORY": repository,
+        "GITHUB_WORKFLOW_REF": workflow_ref,
+    }
+
+    # When
+    container = publish_with(json.dumps(context), monkeypatch)
+
+    # Then
+    env = dict(cast(tuple[str, str], value) for kind, value in container.calls if kind == "env")
+    assert (env["GITHUB_REPOSITORY"], env["GITHUB_WORKFLOW_REF"]) == (repository, workflow_ref)
+
+
+@pytest.mark.parametrize("repository", FOREIGN_REPOSITORIES)
+@pytest.mark.parametrize(
+    ("name", "suffix"), [("GITHUB_REPOSITORY", ""), ("GITHUB_WORKFLOW_REF", PUBLISH_WORKFLOW_REF)]
+)
+def test_should_refuse_a_foreign_repository_in_each_identity_variable(
+    repository: str, name: str, suffix: str
+) -> None:
+    # Given: each identity variable is checked on its own, not only via the other
+    value = f"{repository}{suffix}"
+
+    # When / Then
+    with pytest.raises(ValueError, match="provenance context"):
+        PrivacyCore._context_value(name, value)
+
+
+@pytest.mark.parametrize("repository", ALLOWED)
+@pytest.mark.parametrize(
+    ("name", "suffix"), [("GITHUB_REPOSITORY", ""), ("GITHUB_WORKFLOW_REF", PUBLISH_WORKFLOW_REF)]
+)
+def test_should_accept_an_allowed_repository_in_each_identity_variable(
+    repository: str, name: str, suffix: str
+) -> None:
+    value = f"{repository}{suffix}"
+
+    assert PrivacyCore._context_value(name, value) == value
 
 
 @pytest.mark.parametrize("payload", ["[]", "null", "{}", json.dumps({"GITHUB_SHA": VALID_SHA})])
