@@ -156,7 +156,7 @@ describe("release candidate contract", () => {
     const result = runContract(
       "github",
       "--repository",
-      "hseshadr/privacy-core",
+      "gainratio/privacy-core",
       "--sha",
       SHA,
       "--tag",

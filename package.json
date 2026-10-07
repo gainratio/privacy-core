@@ -27,7 +27,7 @@
   "author": "Harish Seshadri",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hseshadr/privacy-core.git"
+    "url": "git+https://github.com/gainratio/privacy-core.git"
   },
   "packageManager": "pnpm@11.5.0",
   "engines": {

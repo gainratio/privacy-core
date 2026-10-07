@@ -19,6 +19,17 @@ describe("npm scope", () => {
     );
   });
 
+  it("binds provenance to the gainratio repository", () => {
+    // npm provenance rejects a publish whose repository.url does not match the
+    // GitHub repository that signed it, which is gainratio/privacy-core now.
+    const manifest = JSON.parse(read("package.json")) as {
+      repository: { url: string };
+    };
+    expect(manifest.repository.url).toBe(
+      "git+https://github.com/gainratio/privacy-core.git",
+    );
+  });
+
   it("names its old package name nowhere in the release surfaces", () => {
     const surfaces = [
       "package.json",

@@ -4,7 +4,7 @@
 
 **Please report security issues privately — do not open a public issue.**
 
-- Preferred: open a [GitHub private security advisory](https://github.com/hseshadr/privacy-core/security/advisories/new)
+- Preferred: open a [GitHub private security advisory](https://github.com/gainratio/privacy-core/security/advisories/new)
   (Security → *Report a vulnerability*).
 - Or email **harish.seshadri@gmail.com** with `SECURITY` in the subject.
 

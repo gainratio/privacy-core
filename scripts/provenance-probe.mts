@@ -70,7 +70,7 @@ function throwawayPackage(): string {
       version: "0.0.0",
       repository: {
         type: "git",
-        url: "git+https://github.com/hseshadr/privacy-core.git",
+        url: "git+https://github.com/gainratio/privacy-core.git",
       },
     }),
   );
