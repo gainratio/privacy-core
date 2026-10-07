@@ -3,7 +3,7 @@
 ## TL;DR
 
 Privacy Core pins the shared Foundation module to
-`a895f726e9786bcfd2bdf68f87d3d5c4b411f702`. The canonical Dagger check binds the
+`a88866232e679b6353d2b75bceb01969be739f67`. The canonical Dagger check binds the
 caller snapshot to its exact public Git commit and completes the shared guard before
 any product or security gate runs.
 

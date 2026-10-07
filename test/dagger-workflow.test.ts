@@ -56,6 +56,7 @@ function actionName(step: Mapping): string {
 // environment variable, so bash expands it as one literal word, never as code.
 const RELEASE_ARGS =
   'release-candidate --tag="$TAG" --commit-sha="$GITHUB_SHA" ' +
+  '--repository="$GITHUB_REPOSITORY" ' +
   "--github-token=env:GITHUB_TOKEN export --path=release";
 
 // Dispatch tags an attacker could type; each must reach Dagger as one inert word.
@@ -76,7 +77,12 @@ function releaseSteps(): readonly Mapping[] {
 
 // Expand args exactly as dagger-for-github's final bash step does, but print them.
 function expandActionArgs(args: string, tag: string, cwd: string): string[] {
-  const env = { TAG: tag, GITHUB_SHA: "a".repeat(40), PATH: "/usr/bin:/bin" };
+  const env = {
+    TAG: tag,
+    GITHUB_SHA: "a".repeat(40),
+    GITHUB_REPOSITORY: "gainratio/privacy-core",
+    PATH: "/usr/bin:/bin",
+  };
   const result = spawnSync("bash", ["-c", `printf '%s\\0' ${args}`], {
     cwd,
     env,
@@ -113,7 +119,12 @@ describe("Dagger CI/CD ingress", () => {
     });
     expect(mapping(ingress[1]?.with)).toEqual({
       version: "0.21.8",
-      call: "ci --commit-sha=$" + "{{ github.sha }}",
+      // The run's own repository identity; Dagger checks it against an exact
+      // allow-list (hseshadr/privacy-core or gainratio/privacy-core).
+      call:
+        "ci --commit-sha=$" +
+        "{{ github.sha }} --repository=$" +
+        "{{ github.repository }}",
     });
     expect(ingress.every((step) => typeof step.run !== "string")).toBe(true);
   });
@@ -162,10 +173,11 @@ describe("exact Dagger npm release bridge", () => {
 
       const words = expandActionArgs(args, tag, cwd);
 
-      expect(words.slice(0, 3)).toEqual([
+      expect(words.slice(0, 4)).toEqual([
         "release-candidate",
         `--tag=${tag}`,
         `--commit-sha=${"a".repeat(40)}`,
+        "--repository=gainratio/privacy-core",
       ]);
       expect(readdirSync(cwd)).toEqual([]);
     },

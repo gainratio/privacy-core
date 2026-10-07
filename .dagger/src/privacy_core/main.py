@@ -21,7 +21,11 @@ GITLEAKS_IMAGE: Final = (
     "ghcr.io/gitleaks/gitleaks:v8.29.1@sha256:"
     "aa036a2f4bdfe3cc3c55fa4326308efabb4a6be498c883c864fd1d0d5585438a"
 )
-REPOSITORY: Final = "hseshadr/privacy-core"
+# The run's own `github.repository` must be one of exactly these two: today's
+# user-owned repository, and the same repository after the gainratio org move.
+# Exact membership only, never an owner wildcard. Defaults stay today's value.
+ALLOWED_REPOSITORIES: Final = ("hseshadr/privacy-core", "gainratio/privacy-core")
+REPOSITORY: Final = ALLOWED_REPOSITORIES[0]
 REPOSITORY_URL: Final = f"https://github.com/{REPOSITORY}.git"
 PNPM_VERSION: Final = "11.5.0"
 SHA_LENGTH: Final = 40
@@ -40,7 +44,7 @@ BRANCH_REF: Final = r"refs/heads/[A-Za-z0-9._/-]+"
 PROVENANCE_CONTEXT: Final[dict[str, re.Pattern[str]]] = {
     "GITHUB_EVENT_NAME": re.compile(r"workflow_run"),
     "GITHUB_REF": re.compile(BRANCH_REF),
-    "GITHUB_REPOSITORY": re.compile(re.escape(REPOSITORY)),
+    "GITHUB_REPOSITORY": re.compile("|".join(map(re.escape, ALLOWED_REPOSITORIES))),
     "GITHUB_REPOSITORY_ID": DIGITS,
     "GITHUB_REPOSITORY_OWNER_ID": DIGITS,
     "GITHUB_RUN_ATTEMPT": DIGITS,
@@ -50,7 +54,11 @@ PROVENANCE_CONTEXT: Final[dict[str, re.Pattern[str]]] = {
     "GITHUB_WORKFLOW": re.compile(r"[ -~]+"),
     # npm trusted publishing is bound to this exact workflow file.
     "GITHUB_WORKFLOW_REF": re.compile(
-        re.escape(f"{REPOSITORY}/.github/workflows/publish.yml@") + BRANCH_REF
+        "(?:"
+        + "|".join(map(re.escape, ALLOWED_REPOSITORIES))
+        + ")"
+        + re.escape("/.github/workflows/publish.yml@")
+        + BRANCH_REF
     ),
     "RUNNER_ENVIRONMENT": re.compile(r"github-hosted"),
 }
@@ -191,18 +199,21 @@ class PrivacyCore:
 
     @function
     @check
-    async def ci(self, commit_sha: str) -> str:
+    async def ci(self, commit_sha: str, repository: str = REPOSITORY) -> str:
         """Guard the exact caller source before the canonical product gate."""
-        source = await self._verified_source(self.source, commit_sha)
+        self._require_repository(repository)
+        source = await self._verified_source(self.source, commit_sha, repository)
         await self._run_ci(source, commit_sha)
         return "Privacy Core canonical Dagger gate passed"
 
-    async def _verified_source(self, source: dagger.Directory, commit_sha: str) -> dagger.Directory:
+    async def _verified_source(
+        self, source: dagger.Directory, commit_sha: str, repository: str
+    ) -> dagger.Directory:
         """Bind and guard one exact caller snapshot before product evaluation."""
         self._require_sha(commit_sha)
         foundation = dag.foundation()
-        bound = foundation.source(source, REPOSITORY, commit_sha)
-        await foundation.guard(bound, REPOSITORY, commit_sha).sync()
+        bound = foundation.source(source, repository, commit_sha)
+        await foundation.guard(bound, repository, commit_sha).sync()
         return bound
 
     @function
@@ -230,12 +241,17 @@ class PrivacyCore:
 
     @function
     async def release_candidate(
-        self, tag: str, commit_sha: str, github_token: dagger.Secret
+        self,
+        tag: str,
+        commit_sha: str,
+        github_token: dagger.Secret,
+        repository: str = REPOSITORY,
     ) -> dagger.Directory:
         """Build one exact Dagger-proven npm candidate without publishing."""
         self._require_tag(tag)
         self._require_sha(commit_sha)
-        await self._hosted(commit_sha, tag, github_token).sync()
+        self._require_repository(repository)
+        await self._hosted(commit_sha, tag, github_token, repository).sync()
         source = self._release_source(commit_sha)
         await self._identity(source, tag).sync()
         await self._run_ci(source, commit_sha)
@@ -268,6 +284,7 @@ class PrivacyCore:
         if not isinstance(parsed, dict) or set(parsed) != set(PROVENANCE_CONTEXT):
             raise ValueError("provenance context must carry exactly the npm provenance variables")
         values = {name: PrivacyCore._context_value(name, parsed[name]) for name in parsed}
+        PrivacyCore._require_same_repository(values)
         return {"CI": "true", "GITHUB_ACTIONS": "true", **values}
 
     @staticmethod
@@ -275,6 +292,12 @@ class PrivacyCore:
         if not isinstance(value, str) or PROVENANCE_CONTEXT[name].fullmatch(value) is None:
             raise ValueError(f"provenance context {name} is not this repository's publisher")
         return value
+
+    @staticmethod
+    def _require_same_repository(values: dict[str, str]) -> None:
+        workflow_repository = values["GITHUB_WORKFLOW_REF"].split("/.github/", 1)[0]
+        if workflow_repository != values["GITHUB_REPOSITORY"]:
+            raise ValueError("provenance context workflow ref is not this run's repository")
 
     @staticmethod
     async def _candidate_archive(candidate: dagger.Directory) -> str:
@@ -314,8 +337,10 @@ class PrivacyCore:
         )
         return base.with_secret_variable("ACTIONS_ID_TOKEN_REQUEST_TOKEN", oidc_token)
 
-    def _hosted(self, commit_sha: str, tag: str, token: dagger.Secret) -> dagger.Container:
-        command = self._contract_command("github", tag, commit_sha)
+    def _hosted(
+        self, commit_sha: str, tag: str, token: dagger.Secret, repository: str
+    ) -> dagger.Container:
+        command = self._contract_command("github", tag, commit_sha, repository)
         return (
             self._node(self.source).with_secret_variable("GITHUB_TOKEN", token).with_exec(command)
         )
@@ -383,13 +408,13 @@ class PrivacyCore:
         ]
 
     @staticmethod
-    def _contract_command(command: str, tag: str, commit_sha: str) -> list[str]:
+    def _contract_command(command: str, tag: str, commit_sha: str, repository: str) -> list[str]:
         return [
             "node",
             "scripts/release-contract.ts",
             command,
             "--repository",
-            REPOSITORY,
+            repository,
             "--sha",
             commit_sha,
             "--tag",
@@ -457,6 +482,11 @@ class PrivacyCore:
     def _require_tag(tag: str) -> None:
         if RELEASE_TAG.fullmatch(tag) is None:
             raise ValueError("tag must be a plain vX.Y.Z release tag")
+
+    @staticmethod
+    def _require_repository(repository: str) -> None:
+        if repository not in ALLOWED_REPOSITORIES:
+            raise ValueError(f"repository must be one of {', '.join(ALLOWED_REPOSITORIES)}")
 
     @staticmethod
     def _require_sha(commit_sha: str) -> None:
