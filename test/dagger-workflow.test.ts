@@ -11,9 +11,9 @@ const DAGGER = "dagger/dagger-for-github";
 const UPLOAD = "actions/upload-artifact";
 const DOWNLOAD = "actions/download-artifact";
 
-// The central lineage proof (hseshadr/ci#49), pinned at a literal commit.
+// The central lineage proof (gainratio/ci#49), pinned at a literal commit.
 const LINEAGE_MODULE =
-  /^github\.com\/hseshadr\/ci\/modules\/portfolio-foundation@[0-9a-f]{40}$/;
+  /^github\.com\/gainratio\/ci\/modules\/portfolio-foundation@[0-9a-f]{40}$/;
 // Every value is a quoted env var bound to the triggering run, so a hard-coded
 // run id or SHA cannot make the proof about a different run.
 const PROVENANCE_ARGS =
@@ -138,7 +138,7 @@ describe("exact Dagger npm release bridge", () => {
 
     expect(mapping(document.on).workflow_dispatch).toBeDefined();
     expect(candidate.if).toBe("github.ref == 'refs/heads/main'");
-    // Central fleet policy (hseshadr/ci): checkout, Dagger, upload, and no shell.
+    // Central fleet policy (gainratio/ci): checkout, Dagger, upload, and no shell.
     expect(candidateSteps.map(actionName)).toEqual([CHECKOUT, DAGGER, UPLOAD]);
     expect(mapping(candidateSteps[0]?.with)["persist-credentials"]).toBe(false);
     expect(mapping(candidateSteps[2]?.with)).toEqual({
@@ -201,7 +201,7 @@ describe("exact Dagger npm release bridge", () => {
       "id-token": "write",
     });
     // Lineage and provenance come from the central Dagger function; no step
-    // runs repository shell (hseshadr/ci#49).
+    // runs repository shell (gainratio/ci#49).
     expect(publishSteps.map(actionName)).toEqual([DAGGER, DOWNLOAD, DAGGER]);
     expect(publishSteps.filter((step) => "run" in step)).toEqual([]);
     const release = publishSteps[2];
@@ -229,7 +229,7 @@ describe("exact Dagger npm release bridge", () => {
     const invocation = { ...mapping(lineage?.with) };
 
     // `head_branch == default_branch` alone is satisfied by a dispatch on a TAG
-    // named `main`. The central hseshadr/ci function proves from GitHub's run
+    // named `main`. The central gainratio/ci function proves from GitHub's run
     // records that the run is a successful release-candidate.yml dispatch for
     // exactly HEAD_SHA and that main contains HEAD_SHA. Only then does it emit
     // npm's provenance context, derived from the publish run record.
