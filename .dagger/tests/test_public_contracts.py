@@ -240,7 +240,7 @@ def test_should_pin_foundation_to_the_exact_central_commit() -> None:
     assert dependencies == [
         {
             "name": "foundation",
-            "source": f"github.com/hseshadr/ci/modules/portfolio-foundation@{CENTRAL_SHA}",
+            "source": f"github.com/gainratio/ci/modules/portfolio-foundation@{CENTRAL_SHA}",
             "pin": CENTRAL_SHA,
         }
     ]
