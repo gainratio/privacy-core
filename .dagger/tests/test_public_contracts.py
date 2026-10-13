@@ -14,7 +14,7 @@ import pytest
 import privacy_core.main as main_module
 from privacy_core.main import PrivacyCore
 
-CENTRAL_SHA = "fbc02232928fbca80da1013e9e1676a3e41424a6"
+CENTRAL_SHA = "8420264d5560b0817579d9c5323ae3a69ce4558d"
 # The canonical owner first. The pre-transfer identity stays allowed until the
 # gainratio org move finishes; there is deliberately no default to fall back on.
 REPOSITORY = "gainratio/privacy-core"
