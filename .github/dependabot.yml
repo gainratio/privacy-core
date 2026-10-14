@@ -1,10 +1,18 @@
-# Weekly, grouped dependency updates (ENGINEERING-STANDARDS §4).
+# Monthly, grouped dependency updates (ENGINEERING-STANDARDS §4), with a 7-day
+# cooldown. Minor + patch arrive as one PR per ecosystem. Semver-major updates
+# are ignored: majors are migrated by hand in their own PR.
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
-      interval: weekly
+      interval: monthly
+    cooldown:
+      default-days: 7
+    ignore:
+      # Majors are migrated by hand.
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       github-actions:
         patterns:
@@ -16,7 +24,13 @@ updates:
   - package-ecosystem: npm
     directory: "/"
     schedule:
-      interval: weekly
+      interval: monthly
+    cooldown:
+      default-days: 7
+    ignore:
+      # Majors are migrated by hand.
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       npm-dev-toolchain:
         patterns:
