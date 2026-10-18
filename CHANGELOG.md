@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- Align `docs/API.md`, `docs/ARCHITECTURE.md`, `docs/GETTING_STARTED.md`, and `docs/architecture/index.html` with `v0.3.2`, current test counts, and the `gainratio/privacy-core` repository identity.
+
 ## [0.3.2] — 2026-10-04
 
 ### Changed

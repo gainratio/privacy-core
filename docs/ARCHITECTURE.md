@@ -129,9 +129,10 @@ flowchart TD
   browser-held signing key; and whatever the AI provider does with the labeled text. Details:
   [what this does not protect you from](#what-this-does-not-protect-you-from).
 - **Verify a release:** releases are published from CI with npm provenance (an SLSA build
-  attestation linking the tarball to this repository's workflow). 0.3.1 is the first under
-  `@gainratio/privacy-core`; 0.3.0 and older were `@edgeproc/privacy-core`. Check one with
-  `npm view @gainratio/privacy-core@0.3.1 dist.attestations` and, in a project that installed
+  attestation linking the tarball to this repository's workflow). 0.3.1 was the first under
+  `@gainratio/privacy-core` (0.3.0 and older were `@edgeproc/privacy-core`); 0.3.2 is the
+  current release. Check one with
+  `npm view @gainratio/privacy-core@0.3.2 dist.attestations` and, in a project that installed
   it, `npm audit signatures`.
 
 See [SECURITY.md](../SECURITY.md) for reporting a vulnerability.
@@ -201,7 +202,7 @@ tool. Say so out loud rather than working around it.
 
 ### Shipped and planned
 
-**Shipped (v0.3.0):** on-device detection of the formats in
+**Shipped (v0.3.2):** on-device detection of the formats in
 [the recognized table](DETECTION.md); reversible labels and local restore; the
 approve step; the build-time and run-time egress guard; opt-in signed receipts; the offline
 stand-in and OpenRouter providers; an in-memory vault.

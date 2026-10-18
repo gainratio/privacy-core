@@ -1,6 +1,6 @@
 # Using the library
 
-The full API, with runnable examples: the four-step loop, the compile-time check, signed receipts, calling a real model, every export, and every setting. All examples were run against the published npm package, version 0.3.0 under its old name `@edgeproc/privacy-core`; version 0.3.1 is the same code under the new name. Back to the [README](../README.md).
+The full API, with runnable examples: the four-step loop, the compile-time check, signed receipts, calling a real model, every export, and every setting. All examples were run against the published npm package, version 0.3.0 under its old name `@edgeproc/privacy-core`; version 0.3.2 is the current release under `@gainratio/privacy-core`. Back to the [README](../README.md).
 
 ## The full loop, step by step
 
