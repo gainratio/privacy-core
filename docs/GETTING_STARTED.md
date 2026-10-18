@@ -42,8 +42,8 @@ pnpm test                                            # 14s
 Success for `pnpm test` looks like this at the end:
 
 ```text
- Test Files  28 passed (28)
-      Tests  253 passed (253)
+ Test Files  31 passed (31)
+      Tests  269 passed (269)
 ...
 Functions    : 100% ( 54/54 )
 Lines        : 100% ( 287/287 )
@@ -129,7 +129,7 @@ Test first.
 
 5. Update [What it recognizes](DETECTION.md) so the docs match, add a line to
    `CHANGELOG.md`, run `pnpm lint:fix`, then `pnpm gate` again. We did exactly these
-   steps on a fresh clone: 254 tests passed.
+   steps on a fresh clone: 270 tests passed.
 
 Changes that do not touch the rules (a bug fix in `rehydrate`, a provider option)
 skip step 4.
