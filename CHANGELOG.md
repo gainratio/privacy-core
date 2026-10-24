@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **The residual-leak check scans each distinct value once.** `assertNoResidual`
+  compiled a boundary-aware regex and scanned the whole redacted output once per
+  detected span, so a 512 KiB amount-heavy paste (many spans, few distinct values)
+  did the same work repeatedly. It now dedupes span values first. Behaviour is
+  unchanged — the first standalone occurrence of any value still refuses the
+  payload — and the existing 512 KiB bounded-time regression stays green.
+
 ### Documentation
 
 - Align `docs/API.md`, `docs/ARCHITECTURE.md`, `docs/GETTING_STARTED.md`, and `docs/architecture/index.html` with `v0.3.2`, current test counts, and the `gainratio/privacy-core` repository identity.
