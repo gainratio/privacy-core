@@ -63,7 +63,13 @@ function survivesAsToken(out: string, value: string): boolean {
  * token (a benign order id / tracking number) is NOT a leak and does not refuse.
  */
 function assertNoResidual(out: string, spans: readonly Span[]): void {
+  // One boundary-aware scan per DISTINCT value: an amount-heavy paste repeats
+  // the same few values across many spans, and the check used to recompile and
+  // re-scan the whole output once per span (quadratic on a 512 KiB input).
+  const checked = new Set<string>();
   for (const s of spans) {
+    if (checked.has(s.value)) continue;
+    checked.add(s.value);
     if (survivesAsToken(out, s.value)) {
       throw new ResidualValueError(
         `a detected ${s.type} value survived redaction and would cross the wire ` +
