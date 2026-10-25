@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **A mixed-separator card after another digit group is redacted.** The loose
+  card recognizer resumed after a rejected greedy candidate, so `Order 7 4111
+  1111-1111 1111` could be skipped when the run starting at `7` failed Luhn. It
+  now scans every start and retries word-closing prefixes, like the structured
+  card rule. `DETECTOR_VERSION` moves to `3` because the ruleset changed.
+
 ### Changed
 
 - **The residual-leak check scans each distinct value once.** `assertNoResidual`

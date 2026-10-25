@@ -64,7 +64,7 @@ export type EgressSubject = {
  * `test/detector-version.test.ts` pins each version to a fingerprint of the
  * ruleset, so a rule change without a bump fails the gate.
  */
-export const DETECTOR_VERSION = "2";
+export const DETECTOR_VERSION = "3";
 
 /** What the caller knows at the egress decision point. */
 export interface EgressSubjectInput {
