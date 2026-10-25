@@ -232,7 +232,13 @@ export const RULES: readonly Rule[] = [
     scan: "every-start",
     shorter: wordClosingPrefixes,
   },
-  { type: "CARD", re: CARD_LOOSE_RE, accept: luhnValid },
+  {
+    type: "CARD",
+    re: CARD_LOOSE_RE,
+    accept: luhnValid,
+    scan: "every-start",
+    shorter: wordClosingPrefixes,
+  },
   // Label-gated: the English label is what makes a bare digit run an
   // identifier, so the named `value` group is what gets redacted. ACCOUNT takes
   // 6-17 digits (US account numbers run up to 17); five or fewer would collide

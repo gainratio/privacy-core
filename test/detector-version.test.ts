@@ -55,12 +55,16 @@ function rulesetFingerprint(): string {
 const RULESET_GOLDENS: Readonly<Record<string, string>> = {
   "1": "sha256:3b6b79ace54f87e6ffb25c7a7567a621bdae41007cc614d302b390b891e058c6",
   "2": "sha256:8129e8f323e666a0639030073d666f6ed2dcd74ab9cb036d29de381577159500",
+  // "3": the loose card recognizer also scans at every start, so a
+  // mixed-separator card after a digit group is no longer hidden by a rejected
+  // greedy candidate.
+  "3": "sha256:a5d64af459e83b6bd20d6ac15d10dfc0e112285d24090f69f28ed200db3e5b6d",
 };
 
 describe("detector version (which ruleset screened a sealed receipt)", () => {
   it("is 2 for the 0.3.0 ruleset, on the module and the public barrel", () => {
-    expect(DETECTOR_VERSION).toBe("2");
-    expect(PUBLIC_DETECTOR_VERSION).toBe("2");
+    expect(DETECTOR_VERSION).toBe("3");
+    expect(PUBLIC_DETECTOR_VERSION).toBe("3");
   });
 
   it("is what an unpinned receipt payload carries", async () => {
@@ -69,7 +73,7 @@ describe("detector version (which ruleset screened a sealed receipt)", () => {
       redactedText: "Email [EMAIL_1] about SSN [SSN_1].",
       decision: "allow",
     });
-    expect(subject.detector_version).toBe("2");
+    expect(subject.detector_version).toBe("3");
   });
 
   it("is tied to the current ruleset: change a rule, bump the version", () => {

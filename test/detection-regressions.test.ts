@@ -276,6 +276,11 @@ describe("a card preceded by another digit group is still found", () => {
     });
   }
 
+  it("finds a mixed-separator card after a digit group", () => {
+    const text = "Order 7 4111 1111-1111 1111";
+    expect(leakedChars(text, "4111 1111-1111 1111")).toBe("");
+  });
+
   it("recognizes the card layouts people actually print", () => {
     for (const card of [
       "4111111111111111",
