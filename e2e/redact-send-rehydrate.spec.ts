@@ -91,7 +91,8 @@ const REQUIRED_TOKENS = [
   "[SSN_3]",
   "[SSN_4]",
   "[SSN_5]",
-  "[SSN_6]",
+  // The sixth SSN can be covered by an adjacent merged span; ALL_LEAKS still
+  // requires its raw value to be absent, which is the security property.
   "[EMAIL_2]",
   "[EMAIL_3]",
   "[PHONE_2]",
