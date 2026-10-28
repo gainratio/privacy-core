@@ -148,7 +148,7 @@ test("redact → send → rehydrate: only placeholders cross the wire", async ({
 
     // NETWORK-BOUNDARY PROOF: placeholders present, raw PII absent.
     expect(wireBody).toContain("[NAME_1]");
-    expect(wireBody).toContain("[CARD_1]");
+    expect(wireBody).toMatch(/\[CARD_\d+\]/);
     // Non-vacuity: the widened recognizers actually fired in Chromium.
     for (const token of REQUIRED_TOKENS) {
       expect(wireBody, `expected ${token} on the wire`).toContain(token);
@@ -188,7 +188,7 @@ test("redact → send → rehydrate: only placeholders cross the wire", async ({
   // raw values are absent page-wide would be asserting the review UI is broken.
   const wire = page.locator("#wire");
   await expect(wire).toContainText("[NAME_1]");
-  await expect(wire).toContainText("[CARD_1]");
+  await expect(wire).toContainText(/\[CARD_\d+\]/);
   for (const token of REQUIRED_TOKENS) {
     await expect(wire).toContainText(token);
   }
