@@ -95,7 +95,6 @@ describe("Dagger CI/CD ingress", () => {
   it("keeps one protected Dagger ingress and the two local npm release bridges", () => {
     expect(readdirSync(WORKFLOWS).sort()).toEqual([
       "dagger.yml",
-      "dependency-audit.yml",
       "publish.yml",
       "release-candidate.yml",
     ]);
