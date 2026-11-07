@@ -4,6 +4,8 @@ A TypeScript library that hides card numbers, emails and ID numbers from AI mode
 
 **`npm install @gainratio/privacy-core`**. Works in Node 22.13+ and in the browser (tested in Chromium). No account, no API key needed to try it.
 
+**Docs:** [privacy.gainratio.com](https://privacy.gainratio.com/) · [Getting started](https://privacy.gainratio.com/docs/) · [Examples](https://privacy.gainratio.com/examples/)
+
 [![CI](https://github.com/gainratio/privacy-core/actions/workflows/dagger.yml/badge.svg)](https://github.com/gainratio/privacy-core/actions/workflows/dagger.yml)
 [![npm](https://img.shields.io/npm/v/@gainratio/privacy-core)](https://www.npmjs.com/package/@gainratio/privacy-core)
 [![License](https://img.shields.io/github/license/gainratio/privacy-core)](LICENSE)
