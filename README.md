@@ -21,6 +21,10 @@ exactly what will be sent. After they approve, only the labeled text goes out. W
 the answer comes back, the real values are put back in, on the device. Your code
 cannot skip the approval step by accident: TypeScript refuses to compile it.
 
+![Live browser demo: card numbers, emails and SSNs are swapped for labels on the device, approved by a person with signed allow/deny proofs, and put back locally in the reply](docs/assets/live-demo.gif)
+
+**[Watch the 1080p walkthrough](https://open-source.gainratio.com/privacy-core/)** · **[Documentation](https://privacy.gainratio.com/)**
+
 **Technical docs:** [Architecture](docs/ARCHITECTURE.md) · [What it recognizes](docs/DETECTION.md) · [Using the library (API)](docs/API.md) · [Getting started for developers](docs/GETTING_STARTED.md)
 
 ## Try it
